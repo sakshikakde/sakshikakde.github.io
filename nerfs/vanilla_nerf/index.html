@@ -30,7 +30,7 @@
       }
     
       .column-2 {
-        flex: 1;
+        flex: 2;
         margin-left: 0;
         margin-right: 0;
       }
@@ -81,11 +81,11 @@
                   
             </div>
         </div>
-        <table align="center" width="80%" cellspacing="0">
+        <table align="center" width="70%" cellspacing="0">
             <tr>
                 <td align="center" colspan="3">
                   <h4>Full RGB Rendering</h4>
-                  <video id="v0" width="70%" playsinline autoplay loop muted>
+                  <video id="v0" width="60%" playsinline autoplay loop muted>
                     <source src="video/room_metashape.mp4" type="video/mp4" />
                   </video>
                 </td>
@@ -103,13 +103,15 @@
           </table>
     </div> 
     <div class="column-container">
-      <div class="column-2" id="main">
+      <div class="column-2" id="usesmain">
         <!-- <div class="row"> -->
           <div class="col-md-8 col-md-offset-1">
             <h3>
               Insights
             </h3> 
-            <image src="img/phySG.jpg" class="img-responsive" alt="overview" width="800" style="max-height: 15000px;"> 
+            <li>The method transforms the 3D point to Normalized Device Co-ordinates(NDC).</li>
+            <li>Refer the <a href="https://github.com/bmild/nerf/files/4451808/ndc_derivation.pdf"> supplementary material.</a></li>
+            <li>For perspective projection matrix, I referred <a href="http://learnwebgl.brown37.net/08_projections/projections_perspective.html">this blog</a>.
           </div>
         <!-- </div> -->
       </div>
