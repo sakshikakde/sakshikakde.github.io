@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html><head lang="en"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+
+    <!-- mirror: F0%9F%AA%9E&lt -->
+    <title>Vanilla NeRF</title>
+    <link rel="icon" type="image/x-icon" href="./../../assets/blue_flower.ico"/>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/codemirror.min.css">
+    <link rel="stylesheet" href="css/app.css">
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/codemirror.min.js"></script>
+    <script src="js/clipboard.min.js"></script>
+    <script src="js/video_comparison.js"></script>
+    <script src="js/app.js"></script>
+
+    <style>
+      .column-container {
+        display: flex;
+        justify-content: flex-start;
+      }
+      
+      .column-1 {
+        flex: 1;
+        margin-left: 0;
+        margin-right: 0;
+      }
+    
+      .column-2 {
+        flex: 1;
+        margin-left: 0;
+        margin-right: 0;
+      }
+    </style>
+</head>
+
+<body>
+  <div class="container" id="header" style="text-align: center; margin: auto;">
+      <div class="row" id="title-row" style="max-width: 100%; margin: 0 auto; display: inline-block">
+          <h2 class="col-md-12 text-center" id="title">
+              <b>Vanilla NeRF</b><br>
+          </h2>
+      </div>
+  </div>
+  <div class="column-container">
+    <div class="column-1" id="main">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-1">
+                <h3>
+                    Overview
+                </h3>
+                <h5 style="line-height: 1.5; font-size: 1.2em;">
+                    <strong style="font-size: 1em;">Summary:</strong>
+                    <ul style="margin-top: 10px;">
+                      <li>NeRF models the volumetric distribution of light rays in a scene, allowing it to generate novel views with high visual fidelity. It achieves this by training a neural network to predict the radiance at any given 3D point and rendering views by ray marching through the learned radiance field.</li>
+                      <li><strong><span style="font-size: 1em;">Poses and camera parameters: </span></strong> Obtained by using Metashape software.</li>
+                      <li><strong><span style="font-size: 1em;">Images:</span></strong> Captured using an iPhone camera keeping the focus and exposure constant.</li>
+                      <li><strong><span style="font-size: 1em;">Drawbacks:</span></strong> Requires large amount of data, slow to train, sensitive to image and pose noise.
+                      </li>
+                    </ul>
+                  </h5>
+                <h5 style="font-size: 1.2em;">
+                    <strong><span style="font-size: 1em;">Poses and camera parameters: </span></strong> Obtained by using Metashape software.
+                </h5>
+                <h5 style="font-size: 1.2em;">
+                    <strong><span style="font-size: 1em;">Images:</span></strong> Captured using an iPhone camera keeping the focus and exposure constant.
+                </h5>
+                <h5 style="font-size: 1.2em;">
+                <strong><span style="font-size: 1em;">Drawbacks:</span></strong> Requires large amount of data, slow to train, sensitive to image and pose noise.
+                </h5>
+                  
+                  <h5 style="font-size: 1.2em;">
+                    <strong style="font-size: 1em;">Paper:</strong> <a href="https://arxiv.org/abs/2003.08934f">NeRF</a>
+                  </h5>
+                  <h5 style="font-size: 1.2em;">
+                    <strong style="font-size: 1em;">Results:</strong>: The below results are for a Vanilla NeRF model trained on the images captured using iphone.
+                  </h5>
+                  
+            </div>
+        </div>
+        <table align="center" width="80%" cellspacing="0">
+            <tr>
+                <td align="center" colspan="3">
+                  <h4>Full RGB Rendering</h4>
+                  <video id="v0" width="70%" playsinline autoplay loop muted>
+                    <source src="video/room_metashape.mp4" type="video/mp4" />
+                  </video>
+                </td>
+              </tr>
+                <tr>
+                  <td align="center" valign="top" width="50%">
+                    <h4>Depth rendering</h4>
+                    <div class="video-container">
+                      <video id="v1" width="50%" playsinline autoplay loop muted>
+                        <source src="video/room_nerf.mp4" type="video/mp4" />
+                      </video>
+                    </div>
+                  </td>
+                </tr>         
+          </table>
+    </div> 
+    <div class="column-container">
+      <div class="column-2" id="main">
+        <!-- <div class="row"> -->
+          <div class="col-md-8 col-md-offset-1">
+            <h3>
+              Insights
+            </h3> 
+            <image src="img/phySG.jpg" class="img-responsive" alt="overview" width="800" style="max-height: 15000px;"> 
+          </div>
+        <!-- </div> -->
+      </div>
+    </div>
+    
+
+
+</body></html>

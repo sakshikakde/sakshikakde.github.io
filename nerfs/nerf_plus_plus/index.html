@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html><head lang="en"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+
+    <!-- mirror: F0%9F%AA%9E&lt -->
+    <title>NeRF++</title>
+    <link rel="icon" type="image/x-icon" href="./../../assets/blue_flower.ico"/>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/codemirror.min.css">
+    <link rel="stylesheet" href="css/app.css">
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/codemirror.min.js"></script>
+    <script src="js/clipboard.min.js"></script>
+    <script src="js/video_comparison.js"></script>
+    <script src="js/app.js"></script>
+
+    <style>
+      .column-container {
+        display: flex;
+        justify-content: flex-start;
+      }
+      
+      .column-1 {
+        flex: 1;
+        margin-left: 0;
+        margin-right: 0;
+      }
+    
+      .column-2 {
+        flex: 1;
+        margin-left: 0;
+        margin-right: 0;
+      }
+    </style>
+</head>
+
+<body>
+  <div class="container" id="header" style="text-align: center; margin: auto;">
+      <div class="row" id="title-row" style="max-width: 100%; margin: 0 auto; display: inline-block">
+          <h2 class="col-md-12 text-center" id="title">
+              <b>NeRF++</b><br>
+          </h2>
+      </div>
+  </div>
+  <div class="column-container">
+    <div class="column-1" id="main">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-1">
+                <h3>
+                    Overview
+                </h3>
+                <h5 style="line-height: 1.5; font-size: 1.2em;">
+                    <strong style="font-size: 1em;">Summary:</strong>
+                    <ul style="margin-top: 10px;">
+                      <li>Uses two NeRF models: one for background and one for foreground.</li>
+                      <li>The background NeRF model focuses on capturing the environment of the scene.</li>
+                      <li>The foreground NeRF model is responsible for capturing the main objects in the scene.</li>
+                      <li>Partitions the scene space into two volumes: an inner unit sphere (foreground) and an outer volume (background) represented by an inverted sphere covering the complement of the inner volume.</li>
+                    </ul>
+                  </h5>
+                  <h5 style="font-size: 1.2em;">
+                    <strong style="font-size: 1em;">Poses and camera parameters:</strong> Obtained using <a href="https://www.agisoft.com/">Metashape</a>.
+                  </h5>
+                  <h5 style="font-size: 1.2em;">
+                    <strong style="font-size: 1em;">Images:</strong> Used <a href="https://drive.google.com/file/d/1gsjDjkbTh4GAR9fFqlIDZ__qR9NYTURQ/view?usp=sharing">lf idol</a> dataset.
+                  </h5>
+                  <h5 style="font-size: 1.2em;">
+                    <strong style="font-size: 1em;">Drawbacks:</strong> Requires large amount of data, slow to train.
+                  </h5>
+                  
+                  <h5 style="font-size: 1.2em;">
+                    <strong style="font-size: 1em;">Paper:</strong> <a href="https://arxiv.org/abs/2010.07492">NeRF++ paper</a>
+                  </h5>
+                  <h5 style="font-size: 1.2em;">
+                    <strong style="font-size: 1em;">Results:</strong>: The below results are for a NeRF++ model trained on the lf idol dataset.
+                  </h5>
+                  
+            </div>
+        </div>
+        <table align="center" width="80%" cellspacing="0">
+            <tr>
+                <td align="center" colspan="3">
+                  <h4>SfM using Metashape</h4>
+                  <video id="v0" width="87%" playsinline autoplay loop muted>
+                    <source src="video/lf_idol_metashape.mp4" type="video/mp4" />
+                  </video>
+                </td>
+              </tr>
+                <tr>
+                  <td align="left" valign="top" width="50%">
+                    <div class="video-container">
+                      <video id="v1" width="100%" playsinline autoplay loop muted>
+                        <source src="video/rgb_map.mp4" type="video/mp4" />
+                      </video>
+                    </div>
+                  </td>
+                  <td align="left" valign="top" width="50%">
+                    <div class="video-container">
+                      <video id="v2" width="100%" playsinline autoplay loop muted>
+                        <source src="video/bg_lambda.mp4" type="video/mp4" />
+                      </video>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left" valign="top" width="50%">
+                    <div class="video-container">
+                      <video id="v3" width="100%" playsinline autoplay loop muted>
+                        <source src="video/fg_rgb.mp4" type="video/mp4" />
+                      </video>
+                    </div>
+                  </td>
+                  <td align="left" valign="top" width="50%">
+                    <div class="video-container">
+                      <video id="v4" width="100%" playsinline autoplay loop muted>
+                        <source src="video/bg_rgb.mp4" type="video/mp4" />
+                      </video>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                    <td align="left" valign="top" width="50%">
+                      <div class="video-container">
+                        <video id="v3" width="100%" playsinline autoplay loop muted>
+                          <source src="video/fg_depth.mp4" type="video/mp4" />
+                        </video>
+                      </div>
+                    </td>
+                    <td align="left" valign="top" width="50%">
+                      <div class="video-container">
+                        <video id="v4" width="100%" playsinline autoplay loop muted>
+                          <source src="video/bg_depth.mp4" type="video/mp4" />
+                        </video>
+                      </div>
+                    </td>
+                  </tr>           
+          </table>
+    </div> 
+    <div class="column-container">
+      <div class="column-2" id="main">
+        <!-- <div class="row"> -->
+          <div class="col-md-8 col-md-offset-1">
+            <h3>
+              Co-ordinate Transformation
+            </h3> 
+            <image src="img/inverse_sphere.jpg" class="img-responsive" alt="overview" width="800" style="max-height: 15000px;"> 
+          </div>
+        <!-- </div> -->
+      </div>
+    </div>
+    
+
+
+</body></html>
