@@ -3736,7 +3736,7 @@ textarea.form-control-lg {
   --bs-navbar-brand-margin-end: 1rem;
   --bs-navbar-brand-font-size: 1.25rem;
   --bs-navbar-brand-color: rgba(65, 163, 40, 0.9);
-  --bs-navbar-brand-hover-color: rgba(20, 222, 54, 0.9);
+  --bs-navbar-brand-hover-color: #000;
   --bs-navbar-nav-link-padding-x: 0.5rem;
   --bs-navbar-toggler-padding-y: 0.25rem;
   --bs-navbar-toggler-padding-x: 0.75rem;
@@ -3770,7 +3770,7 @@ textarea.form-control-lg {
   padding-bottom: var(--bs-navbar-brand-padding-y);
   margin-right: var(--bs-navbar-brand-margin-end);
   font-size: var(--bs-navbar-brand-font-size);
-  color: red;
+  color: #0b80bf;
   text-decoration: none;
   white-space: nowrap;
 }
