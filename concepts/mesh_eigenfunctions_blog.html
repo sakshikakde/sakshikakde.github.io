@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mesh Eigenfunctions - A Fun Ground-Up Guide</title>
+  <title>Mesh Eigen functions - A Fun Ground-Up Guide</title>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <style>
     :root {
@@ -380,7 +380,7 @@
     .pipe-content { flex: 1; padding-bottom: 22px; }
     .pipe-title { font-weight: 800; color: var(--text); font-size: 15px; margin-bottom: 3px; }
     .pipe-desc { font-size: 14px; color: var(--muted); }
-    .pipe-eq { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); margin-top: 5px; background: var(--red-bg); display: inline-block; padding: 3px 8px; border-radius: 4px; }
+    .pipe-eq { font-family: 'JetBrains Mono', monospace; font-size: 15px; color: var(--text); margin-top: 5px; background: var(--red-bg); display: inline-block; padding: 3px 8px; border-radius: 4px; }
 
     /* ── Code ── */
     pre {
@@ -539,7 +539,7 @@
 <header>
   <div class="header-dots"></div>
   <div class="header-tag">Geometry Processing</div>
-  <h1>Mesh Eigenfunctions & Spectral Analysis</h1>
+  <h1>Mesh Eigen functions & Spectral Analysis</h1>
   <p class="header-origin">I kept running into the Laplacian everywhere in geometry processing and couldn't shake the feeling that I didn't <em>really</em> get it - like, why the Laplacian? And what does it even mean to have eigenvectors of one? This representation feels criminally underexplored (at least by me), and I think it has massive potential. So this is me building the intuition, one function at a time. 🐒</p>
 </header>
 
@@ -551,7 +551,7 @@
     <ol>
       <li><a href="#why-laplacian">Why the Laplacian?</a></li>
       <li><a href="#discrete-laplacian">The discrete Laplacian on a mesh</a></li>
-      <li><a href="#eigenfunctions">Eigenfunctions: the mesh's natural patterns</a></li>
+      <li><a href="#Eigen functions">Eigen functions: the mesh's natural patterns</a></li>
       <li><a href="#small-large">Small λ vs large λ - the frequency story</a></li>
       <li><a href="#low-freq">Extracting the low-frequency mesh</a></li>
       <li><a href="#python">Python implementation</a></li>
@@ -562,7 +562,7 @@
   <section id="why-laplacian">
     <h2><span class="section-num">1</span> Why the Laplacian?</h2>
 
-    <p>We have a 3D mesh - a human body, a teapot, a scanned face. It's a cloud of vertices connected by edges and triangles. Now suppose we want to study how some quantity (temperature, color, displacement) <em>varies</em> across the surface.</p>
+    <p>We have a 3D mesh - a human body, a teapot, a scanned face. It's a cloud of vertices connected by edges and triangles. Now suppose we want to study how some quantity (temperature, color, displacement) varies across the surface.</p>
 
     <div class="meme brain">
       <div class="meme-label">🧠 The core question</div>
@@ -603,12 +603,12 @@
         <tr>
           <td>f′(i−1)</td>
           <td>= f(i) − f(i−1)</td>
-          <td><em>(first backward difference)</em></td>
+          <td><em>(first forward difference)</em></td>
         </tr>
         <tr class="result-row">
           <td>f″(i)</td>
           <td>= f′(i) − f′(i−1)</td>
-          <td><em>(second derivative)</em></td>
+          <td><em>(second backward difference)</em></td>
         </tr>
         <tr class="result-row">
           <td></td>
@@ -653,14 +653,14 @@
   <div class="section-divider">· · ·</div>
 
   <!-- 3 -->
-  <section id="eigenfunctions">
-    <h2><span class="section-num">3</span> Eigenfunctions: the mesh's natural patterns</h2>
+  <section id="Eigen functions">
+    <h2><span class="section-num">3</span> Eigen functions: the mesh's natural patterns</h2>
 
     <p>Since L is a matrix, we can ask the classic eigenvalue question: are there special functions f where applying L just <em>scales</em> f without changing its pattern?</p>
 
     <div class="eq">
       <span class="highlight">Lf = λf</span>
-      <span class="eq-label">f is the eigenfunction. λ is the eigenvalue. The mesh decides both.</span>
+      <span class="eq-label">f is the Eigen function. λ is the eigenvalue. The mesh decides both.</span>
     </div>
 
     <div class="meme brain">
@@ -668,7 +668,7 @@
       Applying L to f measures "how different f is from its neighbors." If Lf = λf, that difference is just f scaled - meaning f has a <strong>consistent, self-similar relationship with its neighborhood everywhere on the mesh</strong>.
     </div>
 
-    <p>A mesh with N vertices has exactly <strong>N eigenfunctions</strong> f₁, f₂, …, fₙ with eigenvalues λ₁ ≤ λ₂ ≤ … ≤ λₙ. Each eigenfunction is just a vector of N numbers - one value per vertex - describing a pattern across the surface.</p>
+    <p>A mesh with N vertices has exactly <strong>N Eigen functions</strong> f₁, f₂, …, fₙ with eigenvalues λ₁ ≤ λ₂ ≤ … ≤ λₙ. Each Eigen function is just a vector of N numbers - one value per vertex - describing a pattern across the surface.</p>
 
     <div class="meme fire">
       <div class="meme-label">🔥 Nobody chooses these patterns</div>
@@ -682,11 +682,11 @@
       </div>
       <div class="analogy-col right">
         <div class="analogy-col-title">🔺 Mesh analogy</div>
-        <p>A mesh has natural eigenfunction patterns determined by its connectivity. You don't choose them. Solve Lf = λf and they emerge.</p>
+        <p>A mesh has natural Eigen function patterns determined by its connectivity. You don't choose them. Solve Lf = λf and they emerge.</p>
       </div>
     </div>
 
-    <h3>Computing eigenfunctions in practice</h3>
+    <h3>Computing Eigen functions in practice</h3>
     <p>Mesh Laplacians are <strong>sparse</strong> - each vertex connects to only ~6 neighbors out of thousands, so L has mostly zeros. Use sparse solvers:</p>
 
     <div class="code-tag">Python</div>
@@ -697,7 +697,7 @@
 <span class="var">eigenvalues</span>, <span class="var">eigenvectors</span> = <span class="fn">scipy.sparse.linalg.eigsh</span>(<span class="var">L</span>, k=<span class="num-c">50</span>)</pre>
 
     <div class="aside">
-      <strong>Eigenvectors vs eigenfunctions - same thing!</strong> An eigenvector of L is a vector of N numbers (one per vertex). An eigenfunction is a function on the mesh (one value per vertex). They're literally identical objects - just different words depending on whether you're thinking algebraically or geometrically.
+      <strong>Eigenvectors vs Eigen functions - same thing!</strong> An eigenvector of L is a vector of N numbers (one per vertex). An Eigen function is a function on the mesh (one value per vertex). They're literally identical objects - just different words depending on whether you're thinking algebraically or geometrically.
     </div>
   </section>
 
@@ -707,7 +707,7 @@
   <section id="small-large">
     <h2><span class="section-num">4</span> Small λ vs large λ - the frequency story</h2>
 
-    <p>The eigenvalue λ tells you about the <em>frequency</em> of the eigenfunction pattern. This follows directly from Lf = λf:</p>
+    <p>The eigenvalue λ tells you about the <em>frequency</em> of the Eigen function pattern. This follows directly from Lf = λf:</p>
 
     <div class="meme check">
       <div class="meme-label">✅ Small λ (close to 0)</div>
@@ -753,7 +753,7 @@
 
     <div class="hot-take">
       <span class="ht-icon">🎵</span>
-      Eigenfunctions are the Fourier frequencies of the mesh. Any function on the mesh = sum of eigenfunctions, just like any signal = sum of sinusoids.
+      Eigen functions are the Fourier frequencies of the mesh. Any function on the mesh = sum of Eigen functions, just like any signal = sum of sinusoids.
     </div>
 
     <p>This is called <strong>spectral geometry</strong> - and it's why people talk about the "frequency domain" of a mesh. Small λ = low frequency = smooth. Large λ = high frequency = detail / noise.</p>
@@ -765,16 +765,16 @@
   <section id="low-freq">
     <h2><span class="section-num">5</span> Extracting the low-frequency mesh</h2>
 
-    <p>This is <strong>spectral mesh filtering</strong> - the 3D geometry equivalent of a low-pass filter in audio. Want to smooth a noisy mesh? Kill the high-frequency eigenfunctions.</p>
+    <p>This is <strong>spectral mesh filtering</strong> - the 3D geometry equivalent of a low-pass filter in audio. Want to smooth a noisy mesh? Kill the high-frequency Eigen functions.</p>
 
     <p>Any scalar function f on the mesh decomposes as:</p>
 
     <div class="eq">
       <span class="highlight">f = c₁f₁ + c₂f₂ + … + cₙfₙ</span>
-      <span class="eq-label">where cₖ = fₖᵀ · f  (dot product = "how much of eigenfunction k is in f?")</span>
+      <span class="eq-label">where cₖ = fₖᵀ · f  (dot product = "how much of Eigen function k is in f?")</span>
     </div>
 
-    <p>To keep only the first K smooth eigenfunctions:</p>
+    <p>To keep only the first K smooth Eigen functions:</p>
 
     <div class="eq">
       <span class="highlight">f<sub>smooth</sub> = c₁f₁ + c₂f₂ + … + c<sub>K</sub>f<sub>K</sub></span>
@@ -796,22 +796,22 @@
         <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
         <div class="pipe-content">
           <div class="pipe-title">Solve Lf = λf</div>
-          <div class="pipe-desc">Get N eigenfunctions sorted by eigenvalue - smoothest first</div>
+          <div class="pipe-desc">Get N Eigen functions sorted by eigenvalue - smoothest first</div>
           <div class="pipe-eq">→ f₁, f₂, …, fₙ  and  λ₁ ≤ λ₂ ≤ … ≤ λₙ</div>
         </div>
       </div>
       <div class="pipe-step">
         <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
         <div class="pipe-content">
-          <div class="pipe-title">Project coordinates onto eigenfunctions</div>
-          <div class="pipe-desc">Decompose x, y, z separately into the eigenfunction basis</div>
+          <div class="pipe-title">Project coordinates onto Eigen functions</div>
+          <div class="pipe-desc">Decompose x, y, z separately into the Eigen function basis</div>
           <div class="pipe-eq">cₖ = fₖᵀ · x  (repeat for y, z)</div>
         </div>
       </div>
       <div class="pipe-step">
         <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
         <div class="pipe-content">
-          <div class="pipe-title">Reconstruct with first K eigenfunctions only</div>
+          <div class="pipe-title">Reconstruct with first K Eigen functions only</div>
           <div class="pipe-desc">Keep smooth patterns, discard spiky noise</div>
           <div class="pipe-eq">x_smooth = Σₖ₌₁ᴷ cₖfₖ  (repeat for y, z)</div>
         </div>
@@ -868,30 +868,30 @@
         <span class="var">L</span>[<span class="var">j</span>, <span class="var">j</span>] -= <span class="num-c">1</span>
     <span class="kw">return</span> <span class="var">L</span>
 
-<span class="cm"># ── Step 2: Compute eigenfunctions ─────────────────</span>
-<span class="kw">def</span> <span class="fn">compute_eigenfunctions</span>(<span class="var">L</span>):
+<span class="cm"># ── Step 2: Compute Eigen functions ─────────────────</span>
+<span class="kw">def</span> <span class="fn">compute_Eigen functions</span>(<span class="var">L</span>):
     <span class="str">"""
-    Returns eigenvalues sorted ascending + eigenfunctions.
-    Each column of eigenfunctions is one eigenfunction.
+    Returns eigenvalues sorted ascending + Eigen functions.
+    Each column of Eigen functions is one Eigen function.
     """</span>
-    <span class="var">eigenvalues</span>, <span class="var">eigenfunctions</span> = <span class="fn">eigh</span>(<span class="var">L</span>)
-    <span class="kw">return</span> <span class="var">eigenvalues</span>, <span class="var">eigenfunctions</span>
+    <span class="var">eigenvalues</span>, <span class="var">Eigen functions</span> = <span class="fn">eigh</span>(<span class="var">L</span>)
+    <span class="kw">return</span> <span class="var">eigenvalues</span>, <span class="var">Eigen functions</span>
 
 <span class="cm"># ── Steps 3+4: Low-frequency mesh extraction ───────</span>
-<span class="kw">def</span> <span class="fn">low_frequency_mesh</span>(<span class="var">vertices</span>, <span class="var">eigenfunctions</span>, <span class="var">K</span>):
+<span class="kw">def</span> <span class="fn">low_frequency_mesh</span>(<span class="var">vertices</span>, <span class="var">Eigen functions</span>, <span class="var">K</span>):
     <span class="str">"""
     vertices:       (N, 3) xyz positions
-    eigenfunctions: (N, N) matrix - columns are eigenfunctions
-    K:              how many eigenfunctions to keep (low-pass)
+    Eigen functions: (N, N) matrix - columns are Eigen functions
+    K:              how many Eigen functions to keep (low-pass)
     Returns smoothed (N, 3) vertex positions
     """</span>
-    <span class="cm"># Keep only K smoothest eigenfunctions</span>
-    <span class="var">F_K</span> = <span class="var">eigenfunctions</span>[:, :<span class="var">K</span>]        <span class="cm"># (N, K)</span>
+    <span class="cm"># Keep only K smoothest Eigen functions</span>
+    <span class="var">F_K</span> = <span class="var">Eigen functions</span>[:, :<span class="var">K</span>]        <span class="cm"># (N, K)</span>
 
     <span class="cm"># Project: cₖ = fₖᵀ · vertices</span>
     <span class="var">coeffs</span> = <span class="var">F_K</span>.<span class="var">T</span> @ <span class="var">vertices</span>           <span class="cm"># (K, 3)</span>
 
-    <span class="cm"># Reconstruct from K eigenfunctions only</span>
+    <span class="cm"># Reconstruct from K Eigen functions only</span>
     <span class="var">vertices_smooth</span> = <span class="var">F_K</span> @ <span class="var">coeffs</span>     <span class="cm"># (N, 3)</span>
     <span class="kw">return</span> <span class="var">vertices_smooth</span>
 
@@ -900,17 +900,17 @@
 <span class="cm"># vertices = np.array([...])       shape (N, 3)</span>
 
 <span class="var">L</span> = <span class="fn">build_laplacian</span>(<span class="fn">len</span>(<span class="var">vertices</span>), <span class="var">edges</span>)
-<span class="var">eigenvalues</span>, <span class="var">eigenfunctions</span> = <span class="fn">compute_eigenfunctions</span>(<span class="var">L</span>)
+<span class="var">eigenvalues</span>, <span class="var">Eigen functions</span> = <span class="fn">compute_Eigen functions</span>(<span class="var">L</span>)
 
-<span class="cm"># Strong smoothing - keep only 20 eigenfunctions</span>
-<span class="var">smooth</span> = <span class="fn">low_frequency_mesh</span>(<span class="var">vertices</span>, <span class="var">eigenfunctions</span>, <span class="var">K</span>=<span class="num-c">20</span>)
+<span class="cm"># Strong smoothing - keep only 20 Eigen functions</span>
+<span class="var">smooth</span> = <span class="fn">low_frequency_mesh</span>(<span class="var">vertices</span>, <span class="var">Eigen functions</span>, <span class="var">K</span>=<span class="num-c">20</span>)
 
 <span class="cm"># Gentle smoothing - keep 200</span>
-<span class="var">gentle</span> = <span class="fn">low_frequency_mesh</span>(<span class="var">vertices</span>, <span class="var">eigenfunctions</span>, <span class="var">K</span>=<span class="num-c">200</span>)</pre>
+<span class="var">gentle</span> = <span class="fn">low_frequency_mesh</span>(<span class="var">vertices</span>, <span class="var">Eigen functions</span>, <span class="var">K</span>=<span class="num-c">200</span>)</pre>
 
     <div class="meme info">
       <div class="meme-label">ℹ️ Pro tip for large meshes</div>
-      Don't compute all N eigenfunctions if you only need K. Use <code>scipy.sparse.linalg.eigsh(L, k=K)</code> - it computes only the K smallest directly, which is dramatically faster for meshes with thousands of vertices.
+      Don't compute all N Eigen functions if you only need K. Use <code>scipy.sparse.linalg.eigsh(L, k=K)</code> - it computes only the K smallest directly, which is dramatically faster for meshes with thousands of vertices.
     </div>
   </section>
 
