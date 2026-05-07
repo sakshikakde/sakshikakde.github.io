@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mesh Eigenfunctions - A Fun Ground-Up Guide</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #faf8f3;
+      --surface: #ffffff;
+      --surface2: #f3f0e8;
+      --border: #e2ddd0;
+      --text: #2a2520;
+      --muted: #7a6f60;
+      --accent: #d4500a;
+      --blue: #1a5fa8;
+      --green: #1e7c4a;
+      --purple: #6b3fa0;
+      --yellow: #f5c842;
+      --yellow-bg: #fffbea;
+      --red-bg: #fff1ee;
+      --blue-bg: #eef5ff;
+      --green-bg: #edfaf3;
+      --purple-bg: #f5f0ff;
+      --radius: 10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 17px;
+      line-height: 1.8;
+      font-weight: 400;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--text);
+      color: #fff;
+      padding: 72px 24px 60px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-dots {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+
+    .header-tag {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.1;
+      max-width: 680px;
+      margin: 0 auto 16px;
+      position: relative;
+    }
+
+    .header-sub {
+      color: rgba(255,255,255,0.6);
+      font-size: 15px;
+      max-width: 460px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .header-origin {
+      margin: 20px auto 0;
+      max-width: 560px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.45);
+      font-style: italic;
+      position: relative;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 16px;
+    }
+    .header-origin em { color: rgba(255,255,255,0.7); font-style: normal; font-weight: 700; }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    article { padding: 60px 0 100px; }
+
+    /* ── TOC ── */
+    .toc {
+      background: var(--yellow-bg);
+      border: 2px solid var(--yellow);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 56px;
+      position: relative;
+    }
+
+    .toc::before {
+      content: "📋";
+      position: absolute;
+      top: -14px;
+      left: 20px;
+      font-size: 22px;
+      background: var(--yellow-bg);
+      padding: 0 6px;
+    }
+
+    .toc-title {
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .toc ol { padding-left: 20px; }
+    .toc li { margin: 6px 0; font-size: 15px; }
+    .toc a { color: var(--blue); text-decoration: none; font-weight: 600; }
+    .toc a:hover { text-decoration: underline; }
+
+    /* ── Sections ── */
+    section { margin-bottom: 72px; }
+
+    h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.9rem;
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 18px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      font-family: 'Nunito', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin: 28px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    p { margin-bottom: 16px; }
+    strong { font-weight: 700; }
+    em { font-style: italic; color: var(--muted); }
+
+    /* ── Meme / callout boxes ── */
+    .meme {
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin: 28px 0;
+      border: 2px solid;
+      position: relative;
+    }
+
+    .meme-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .meme.brain {
+      background: var(--purple-bg);
+      border-color: #c4b0e8;
+    }
+    .meme.brain .meme-label { color: var(--purple); }
+
+    .meme.fire {
+      background: var(--red-bg);
+      border-color: #f5c4b4;
+    }
+    .meme.fire .meme-label { color: var(--accent); }
+
+    .meme.lightbulb {
+      background: var(--yellow-bg);
+      border-color: var(--yellow);
+    }
+    .meme.lightbulb .meme-label { color: #9a7a00; }
+
+    .meme.check {
+      background: var(--green-bg);
+      border-color: #a8dfc0;
+    }
+    .meme.check .meme-label { color: var(--green); }
+
+    .meme.info {
+      background: var(--blue-bg);
+      border-color: #b4d0f5;
+    }
+    .meme.info .meme-label { color: var(--blue); }
+
+    .deriv-steps {
+      border-collapse: collapse;
+      margin: 12px 0 16px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9em;
+    }
+    .deriv-steps td {
+      padding: 4px 16px 4px 0;
+      vertical-align: baseline;
+      white-space: nowrap;
+    }
+    .deriv-steps td:first-child {
+      text-align: right;
+      min-width: 4em;
+    }
+    .deriv-steps td:nth-child(3) {
+      color: var(--muted);
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.9em;
+    }
+    .deriv-steps tr.result-row td {
+      padding-top: 8px;
+      border-top: 1px solid var(--yellow);
+    }
+
+    /* ── "Wait but why" aside ── */
+    .aside {
+      background: var(--surface2);
+      border-left: 4px solid var(--yellow);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 16px 20px;
+      margin: 24px 0;
+      font-size: 15px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .aside strong { color: var(--text); font-style: normal; }
+
+    /* ── Equation blocks ── */
+    .eq {
+      background: var(--text);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      margin: 24px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      text-align: center;
+      letter-spacing: 0.02em;
+      position: relative;
+    }
+
+    .eq .eq-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      display: block;
+      margin-top: 6px;
+      font-family: 'Nunito', sans-serif;
+      letter-spacing: 0.04em;
+    }
+
+    .eq .highlight { color: var(--yellow); font-weight: 500; }
+
+    /* ── Tables ── */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      font-size: 15px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 2px solid var(--border);
+    }
+
+    .compare-table th {
+      background: var(--text);
+      color: #fff;
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .compare-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      vertical-align: top;
+    }
+
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table tr:nth-child(even) td { background: var(--surface2); }
+    .compare-table td:first-child { color: var(--text); font-weight: 700; }
+
+    /* ── Matrix ── */
+    .matrix-wrap { overflow-x: auto; margin: 24px 0; text-align: center; }
+    .matrix {
+      display: inline-block;
+      border-left: 3px solid var(--text);
+      border-right: 3px solid var(--text);
+      padding: 12px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      line-height: 2.2;
+    }
+    .matrix .row { display: flex; gap: 32px; justify-content: center; }
+    .matrix .num { min-width: 28px; text-align: right; }
+    .matrix .pos { color: var(--blue); font-weight: 700; }
+    .matrix .neg { color: var(--accent); font-weight: 700; }
+    .matrix .zero { color: var(--muted); }
+
+    /* ── Freq cards ── */
+    .freq-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 28px 0;
+    }
+
+    .freq-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 14px;
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+
+    .freq-card:hover { border-color: var(--accent); }
+    .freq-wave { height: 52px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+    .freq-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); font-weight: 500; margin-bottom: 4px; }
+    .freq-desc { font-size: 13px; color: var(--muted); font-weight: 600; }
+
+    /* ── Pipeline ── */
+    .pipeline { margin: 28px 0; display: flex; flex-direction: column; gap: 0; }
+    .pipe-step { display: flex; align-items: flex-start; gap: 16px; }
+    .pipe-connector { display: flex; flex-direction: column; align-items: center; width: 40px; flex-shrink: 0; }
+    .pipe-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 4px; border: 2px solid #fff; box-shadow: 0 0 0 2px var(--accent); }
+    .pipe-line { width: 2px; flex: 1; min-height: 24px; background: var(--border); margin: 4px 0; }
+    .pipe-content { flex: 1; padding-bottom: 22px; }
+    .pipe-title { font-weight: 800; color: var(--text); font-size: 15px; margin-bottom: 3px; }
+    .pipe-desc { font-size: 14px; color: var(--muted); }
+    .pipe-eq { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); margin-top: 5px; background: var(--red-bg); display: inline-block; padding: 3px 8px; border-radius: 4px; }
+
+    /* ── Code ── */
+    pre {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      border-radius: var(--radius);
+      padding: 24px;
+      overflow-x: auto;
+      margin: 28px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      line-height: 1.75;
+      border: 2px solid #2a2a3e;
+      position: relative;
+    }
+
+    .code-tag {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+
+    .kw { color: #cba6f7; }
+    .fn { color: #89dceb; }
+    .str { color: #a6e3a1; }
+    .cm { color: #6c7086; font-style: italic; }
+    .num-c { color: #fab387; }
+    .cls { color: #89b4fa; }
+    .var { color: #cdd6f4; }
+
+    /* ── "Hot take" strip ── */
+    .hot-take {
+      background: var(--accent);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 16px 22px;
+      margin: 28px 0;
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hot-take .ht-icon { font-size: 24px; flex-shrink: 0; }
+
+    /* ── Two-col analogy ── */
+    .analogy-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 24px 0;
+    }
+
+    .analogy-col {
+      border-radius: var(--radius);
+      border: 2px solid;
+      padding: 18px;
+    }
+
+    .analogy-col.left {
+      border-color: #b4d0f5;
+      background: var(--blue-bg);
+    }
+
+    .analogy-col.right {
+      border-color: #f5c4b4;
+      background: var(--red-bg);
+    }
+
+    .analogy-col-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+
+    .analogy-col.left .analogy-col-title { color: var(--blue); }
+    .analogy-col.right .analogy-col-title { color: var(--accent); }
+    .analogy-col p { font-size: 14px; margin-bottom: 0; color: var(--text); }
+
+    /* ── Section divider ── */
+    .section-divider {
+      text-align: center;
+      margin: 56px 0 48px;
+      color: var(--border);
+      font-size: 20px;
+      letter-spacing: 12px;
+    }
+
+    /* ── Visualizer link card ── */
+    .vis-embed {
+      margin: 28px 0;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 2px solid var(--border);
+      background: #1a1814;
+    }
+    .vis-embed iframe {
+      display: block;
+      width: 100%;
+      height: 520px;
+      border: none;
+    }
+    .vis-caption {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+      background: #1a1814;
+    }
+    .vis-caption-text {
+      font-size: 12px;
+      color: #8a7f6f;
+    }
+    .vis-fullscreen {
+      font-size: 12px;
+      font-weight: 700;
+      color: #f5c842;
+      text-decoration: none;
+    }
+    .vis-fullscreen:hover { text-decoration: underline; }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--text);
+      color: rgba(255,255,255,0.5);
+      padding: 36px 24px;
+      text-align: center;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    footer strong { color: #fff; }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 1.8rem; }
+      h2 { font-size: 1.45rem; }
+      .freq-grid { grid-template-columns: 1fr 1fr; }
+      .analogy-cols { grid-template-columns: 1fr; }
+      pre { font-size: 12px; padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-dots"></div>
+  <div class="header-tag">Geometry Processing</div>
+  <h1>Mesh Eigenfunctions & Spectral Analysis</h1>
+  <p class="header-origin">I kept running into the Laplacian everywhere in geometry processing and couldn't shake the feeling that I didn't <em>really</em> get it - like, why the Laplacian? And what does it even mean to have eigenvectors of one? This representation feels criminally underexplored (at least by me), and I think it has massive potential. So this is me building the intuition, one function at a time. 🐒</p>
+</header>
+
+<div class="container">
+<article>
+
+  <nav class="toc">
+    <div class="toc-title">What's in this post</div>
+    <ol>
+      <li><a href="#why-laplacian">Why the Laplacian?</a></li>
+      <li><a href="#discrete-laplacian">The discrete Laplacian on a mesh</a></li>
+      <li><a href="#eigenfunctions">Eigenfunctions: the mesh's natural patterns</a></li>
+      <li><a href="#small-large">Small λ vs large λ - the frequency story</a></li>
+      <li><a href="#low-freq">Extracting the low-frequency mesh</a></li>
+      <li><a href="#python">Python implementation</a></li>
+    </ol>
+  </nav>
+
+  <!-- 1 -->
+  <section id="why-laplacian">
+    <h2><span class="section-num">1</span> Why the Laplacian?</h2>
+
+    <p>We have a 3D mesh - a human body, a teapot, a scanned face. It's a cloud of vertices connected by edges and triangles. Now suppose we want to study how some quantity (temperature, color, displacement) <em>varies</em> across the surface.</p>
+
+    <div class="meme brain">
+      <div class="meme-label">🧠 The core question</div>
+      How different is the value at this point compared to its immediate surroundings?
+    </div>
+
+    <p>On a smooth surface, the tool for this is the <strong>Laplacian operator ∇²</strong>. Think about heat diffusion. If vertex <em>i</em> sits at 100° and all its neighbors sit at 20°, heat flows outward fast. If vertex <em>i</em> matches its neighbors exactly, nothing happens. The Laplacian captures exactly this intuition.</p>
+
+    <div class="aside">
+      <strong>Wait, isn't the Laplacian a second derivative?</strong> Yes! And it turns out "second derivative" and "difference from neighbors" are the same thing in discrete form. We'll prove it in section 2.
+    </div>
+
+    <p>On a mesh we don't have a smooth surface, we have discrete vertices and edges. So we need a <strong>discrete Laplacian</strong> that approximates the continuous operator on our graph structure.</p>
+  </section>
+
+  <div class="section-divider">· · ·</div>
+
+  <!-- 2 -->
+  <section id="discrete-laplacian">
+    <h2><span class="section-num">2</span> The discrete Laplacian on a mesh</h2>
+
+    <p>Let <strong>f</strong> be a scalar function on the mesh - one number per vertex (temperature, height, color, whatever). The <strong>combinatorial Laplacian</strong> at vertex i is:</p>
+
+    <div class="eq">
+      <span class="highlight">Lf(i) = Σ<sub>j∈N(i)</sub> (f(j) − f(i))</span>
+      <span class="eq-label">Sum of differences between vertex i and each of its neighbors N(i)</span>
+    </div>
+
+    <div class="meme lightbulb">
+      <div class="meme-label">💡 "But that's just a first-order difference, not a second derivative?"</div>
+      <p>Great catch. Let's actually prove it's a second derivative in 1D. This tripped me up for a long time, so I want to show the math step-by-step to make it crystal clear.</p>
+      <table class="deriv-steps">
+        <tr>
+          <td>f′(i)</td>
+          <td>= f(i+1) − f(i)</td>
+          <td><em>(first forward difference)</em></td>
+        </tr>
+        <tr>
+          <td>f′(i−1)</td>
+          <td>= f(i) − f(i−1)</td>
+          <td><em>(first backward difference)</em></td>
+        </tr>
+        <tr class="result-row">
+          <td>f″(i)</td>
+          <td>= f′(i) − f′(i−1)</td>
+          <td><em>(second derivative)</em></td>
+        </tr>
+        <tr class="result-row">
+          <td></td>
+          <td>= <strong>f(i+1) − 2f(i) + f(i−1)</strong></td>
+          <td></td>
+        </tr>
+      </table>
+      <p>Rearranged: <strong>[f(i+1) + f(i−1)] − 2f(i)</strong> = 2 × (avg. neighbors − f(i)) ✓</p>
+    </div>
+
+    <p>The second derivative literally <em>is</em> the neighbor-average difference.</p>
+
+    <h3>As a matrix</h3>
+
+    <p>Since f is a vector (N numbers, one per vertex), L can be written as an N×N matrix. The entries are beautifully simple:</p>
+
+    <table class="compare-table">
+      <thead><tr><th>Entry</th><th>Value</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>L[i][i]</td><td>−degree(i)</td><td>Negative count of neighbors (diagonal)</td></tr>
+        <tr><td>L[i][j]</td><td>1</td><td>If i and j share an edge</td></tr>
+        <tr><td>L[i][j]</td><td>0</td><td>If i and j are not connected</td></tr>
+      </tbody>
+    </table>
+
+    <p>For 3 vertices all connected to each other, L looks like:</p>
+
+    <div class="matrix-wrap">
+      <div class="matrix">
+        <div class="row"><span class="num neg">−2</span><span class="num pos"> 1</span><span class="num pos"> 1</span></div>
+        <div class="row"><span class="num pos"> 1</span><span class="num neg">−2</span><span class="num pos"> 1</span></div>
+        <div class="row"><span class="num pos"> 1</span><span class="num pos"> 1</span><span class="num neg">−2</span></div>
+      </div>
+    </div>
+
+    <div class="hot-take">
+      <span class="ht-icon">🔑</span>
+      L is built purely from connectivity - no scalar function needed. It's a machine ready to act on any f you give it.
+    </div>
+  </section>
+
+  <div class="section-divider">· · ·</div>
+
+  <!-- 3 -->
+  <section id="eigenfunctions">
+    <h2><span class="section-num">3</span> Eigenfunctions: the mesh's natural patterns</h2>
+
+    <p>Since L is a matrix, we can ask the classic eigenvalue question: are there special functions f where applying L just <em>scales</em> f without changing its pattern?</p>
+
+    <div class="eq">
+      <span class="highlight">Lf = λf</span>
+      <span class="eq-label">f is the eigenfunction. λ is the eigenvalue. The mesh decides both.</span>
+    </div>
+
+    <div class="meme brain">
+      <div class="meme-label">🧠 What does this mean geometrically?</div>
+      Applying L to f measures "how different f is from its neighbors." If Lf = λf, that difference is just f scaled - meaning f has a <strong>consistent, self-similar relationship with its neighborhood everywhere on the mesh</strong>.
+    </div>
+
+    <p>A mesh with N vertices has exactly <strong>N eigenfunctions</strong> f₁, f₂, …, fₙ with eigenvalues λ₁ ≤ λ₂ ≤ … ≤ λₙ. Each eigenfunction is just a vector of N numbers - one value per vertex - describing a pattern across the surface.</p>
+
+    <div class="meme fire">
+      <div class="meme-label">🔥 Nobody chooses these patterns</div>
+      The mesh shape itself dictates them. You just solve the math and they fall out. This is why they're powerful - they're intrinsic to the shape, not an arbitrary choice.
+    </div>
+
+    <div class="analogy-cols">
+      <div class="analogy-col left">
+        <div class="analogy-col-title">🎸 Guitar string analogy</div>
+        <p>A guitar string has natural vibration frequencies determined by its physical properties - length, tension, mass. You don't choose them. Pluck it and they emerge.</p>
+      </div>
+      <div class="analogy-col right">
+        <div class="analogy-col-title">🔺 Mesh analogy</div>
+        <p>A mesh has natural eigenfunction patterns determined by its connectivity. You don't choose them. Solve Lf = λf and they emerge.</p>
+      </div>
+    </div>
+
+    <h3>Computing eigenfunctions in practice</h3>
+    <p>Mesh Laplacians are <strong>sparse</strong> - each vertex connects to only ~6 neighbors out of thousands, so L has mostly zeros. Use sparse solvers:</p>
+
+    <div class="code-tag">Python</div>
+    <pre><span class="cm"># Dense (small meshes)</span>
+<span class="var">eigenvalues</span>, <span class="var">eigenvectors</span> = <span class="fn">numpy.linalg.eigh</span>(<span class="var">L</span>)
+
+<span class="cm"># Sparse (large meshes - much faster, only compute K smallest)</span>
+<span class="var">eigenvalues</span>, <span class="var">eigenvectors</span> = <span class="fn">scipy.sparse.linalg.eigsh</span>(<span class="var">L</span>, k=<span class="num-c">50</span>)</pre>
+
+    <div class="aside">
+      <strong>Eigenvectors vs eigenfunctions - same thing!</strong> An eigenvector of L is a vector of N numbers (one per vertex). An eigenfunction is a function on the mesh (one value per vertex). They're literally identical objects - just different words depending on whether you're thinking algebraically or geometrically.
+    </div>
+  </section>
+
+  <div class="section-divider">· · ·</div>
+
+  <!-- 4 -->
+  <section id="small-large">
+    <h2><span class="section-num">4</span> Small λ vs large λ - the frequency story</h2>
+
+    <p>The eigenvalue λ tells you about the <em>frequency</em> of the eigenfunction pattern. This follows directly from Lf = λf:</p>
+
+    <div class="meme check">
+      <div class="meme-label">✅ Small λ (close to 0)</div>
+      Lf(i) ≈ 0 → Σ(f(j) − f(i)) ≈ 0 → neighbors ≈ current vertex value<br>
+      → <strong>Smooth, slowly varying pattern across the mesh</strong>
+    </div>
+
+    <div class="meme fire">
+      <div class="meme-label">🔥 Large λ</div>
+      Lf(i) is large → neighbors differ a lot from vertex i<br>
+      → <strong>Spiky, rapidly oscillating pattern</strong>
+    </div>
+
+    <div class="freq-grid">
+      <div class="freq-card">
+        <div class="freq-wave">
+          <svg width="80" height="44" viewBox="0 0 80 44">
+            <path d="M4 22 Q40 14 76 22" fill="none" stroke="#1a5fa8" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="freq-label">f₁ - λ ≈ 0</div>
+        <div class="freq-desc">Constant / flat</div>
+      </div>
+      <div class="freq-card">
+        <div class="freq-wave">
+          <svg width="80" height="44" viewBox="0 0 80 44">
+            <path d="M4 22 Q20 6 40 22 Q60 38 76 22" fill="none" stroke="#1e7c4a" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="freq-label">f₂ - small λ</div>
+        <div class="freq-desc">One smooth wave</div>
+      </div>
+      <div class="freq-card">
+        <div class="freq-wave">
+          <svg width="80" height="44" viewBox="0 0 80 44">
+            <path d="M4 22 Q14 6 24 22 Q34 38 44 22 Q54 6 64 22 Q74 38 80 22" fill="none" stroke="#d4500a" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="freq-label">fₙ - large λ</div>
+        <div class="freq-desc">Rapid oscillation</div>
+      </div>
+    </div>
+
+    <div class="hot-take">
+      <span class="ht-icon">🎵</span>
+      Eigenfunctions are the Fourier frequencies of the mesh. Any function on the mesh = sum of eigenfunctions, just like any signal = sum of sinusoids.
+    </div>
+
+    <p>This is called <strong>spectral geometry</strong> - and it's why people talk about the "frequency domain" of a mesh. Small λ = low frequency = smooth. Large λ = high frequency = detail / noise.</p>
+  </section>
+
+  <div class="section-divider">· · ·</div>
+
+  <!-- 5 -->
+  <section id="low-freq">
+    <h2><span class="section-num">5</span> Extracting the low-frequency mesh</h2>
+
+    <p>This is <strong>spectral mesh filtering</strong> - the 3D geometry equivalent of a low-pass filter in audio. Want to smooth a noisy mesh? Kill the high-frequency eigenfunctions.</p>
+
+    <p>Any scalar function f on the mesh decomposes as:</p>
+
+    <div class="eq">
+      <span class="highlight">f = c₁f₁ + c₂f₂ + … + cₙfₙ</span>
+      <span class="eq-label">where cₖ = fₖᵀ · f  (dot product = "how much of eigenfunction k is in f?")</span>
+    </div>
+
+    <p>To keep only the first K smooth eigenfunctions:</p>
+
+    <div class="eq">
+      <span class="highlight">f<sub>smooth</sub> = c₁f₁ + c₂f₂ + … + c<sub>K</sub>f<sub>K</sub></span>
+      <span class="eq-label">Low-pass filter - throw away everything above K</span>
+    </div>
+
+    <p>For a 3D mesh, apply this independently to x, y, and z coordinates:</p>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+        <div class="pipe-content">
+          <div class="pipe-title">Build L from mesh connectivity</div>
+          <div class="pipe-desc">1s for neighbors, −degree on diagonal, 0s everywhere else</div>
+          <div class="pipe-eq">L[i][i] = −deg(i)   L[i][j] = 1 if neighbors</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+        <div class="pipe-content">
+          <div class="pipe-title">Solve Lf = λf</div>
+          <div class="pipe-desc">Get N eigenfunctions sorted by eigenvalue - smoothest first</div>
+          <div class="pipe-eq">→ f₁, f₂, …, fₙ  and  λ₁ ≤ λ₂ ≤ … ≤ λₙ</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+        <div class="pipe-content">
+          <div class="pipe-title">Project coordinates onto eigenfunctions</div>
+          <div class="pipe-desc">Decompose x, y, z separately into the eigenfunction basis</div>
+          <div class="pipe-eq">cₖ = fₖᵀ · x  (repeat for y, z)</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+        <div class="pipe-content">
+          <div class="pipe-title">Reconstruct with first K eigenfunctions only</div>
+          <div class="pipe-desc">Keep smooth patterns, discard spiky noise</div>
+          <div class="pipe-eq">x_smooth = Σₖ₌₁ᴷ cₖfₖ  (repeat for y, z)</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-connector"><div class="pipe-dot"></div></div>
+        <div class="pipe-content">
+          <div class="pipe-title">Smoothed mesh ✓</div>
+          <div class="pipe-desc">New vertex positions with high-frequency noise removed</div>
+          <div class="pipe-eq">K small → very smooth  |  K large → preserves more detail</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="meme lightbulb">
+      <div class="meme-label">💡 The K tradeoff</div>
+      <strong>K = 5:</strong> Very smooth - you'll lose fine details, but noise is gone.<br>
+      <strong>K = 200:</strong> Gentle smoothing - details preserved, some noise remains.<br>
+      <strong>K = N:</strong> Perfect reconstruction - nothing removed.
+    </div>
+
+    <div class="vis-embed">
+      <iframe src="mesh_visualizer.html" title="Interactive Spectral Mesh Visualizer" loading="lazy" allowfullscreen></iframe>
+      <div class="vis-caption">
+        <span class="vis-caption-text">Drag slider · orbit with mouse · scroll to zoom · toggle wireframe</span>
+        <a href="mesh_visualizer.html" target="_blank" class="vis-fullscreen">Open fullscreen ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider">· · ·</div>
+
+  <!-- 6 -->
+  <section id="python">
+    <h2><span class="section-num">6</span> Python implementation</h2>
+
+    <p>Here's the full pipeline - clean, commented, and ready to drop into your project:</p>
+
+    <div class="code-tag">Python</div>
+    <pre><span class="kw">import</span> <span class="cls">numpy</span> <span class="kw">as</span> <span class="var">np</span>
+<span class="kw">from</span> <span class="cls">scipy.linalg</span> <span class="kw">import</span> <span class="fn">eigh</span>
+
+<span class="cm"># ── Step 1: Build Laplacian ─────────────────────────</span>
+<span class="kw">def</span> <span class="fn">build_laplacian</span>(<span class="var">n_vertices</span>, <span class="var">edges</span>):
+    <span class="str">"""
+    edges: list of (i, j) vertex index pairs
+    Returns L: (N, N) combinatorial Laplacian matrix
+    """</span>
+    <span class="var">L</span> = <span class="var">np</span>.<span class="fn">zeros</span>((<span class="var">n_vertices</span>, <span class="var">n_vertices</span>))
+    <span class="kw">for</span> <span class="var">i</span>, <span class="var">j</span> <span class="kw">in</span> <span class="var">edges</span>:
+        <span class="var">L</span>[<span class="var">i</span>, <span class="var">j</span>] += <span class="num-c">1</span>       <span class="cm"># neighbor gets +1</span>
+        <span class="var">L</span>[<span class="var">j</span>, <span class="var">i</span>] += <span class="num-c">1</span>       <span class="cm"># symmetric</span>
+        <span class="var">L</span>[<span class="var">i</span>, <span class="var">i</span>] -= <span class="num-c">1</span>       <span class="cm"># subtract degree on diagonal</span>
+        <span class="var">L</span>[<span class="var">j</span>, <span class="var">j</span>] -= <span class="num-c">1</span>
+    <span class="kw">return</span> <span class="var">L</span>
+
+<span class="cm"># ── Step 2: Compute eigenfunctions ─────────────────</span>
+<span class="kw">def</span> <span class="fn">compute_eigenfunctions</span>(<span class="var">L</span>):
+    <span class="str">"""
+    Returns eigenvalues sorted ascending + eigenfunctions.
+    Each column of eigenfunctions is one eigenfunction.
+    """</span>
+    <span class="var">eigenvalues</span>, <span class="var">eigenfunctions</span> = <span class="fn">eigh</span>(<span class="var">L</span>)
+    <span class="kw">return</span> <span class="var">eigenvalues</span>, <span class="var">eigenfunctions</span>
+
+<span class="cm"># ── Steps 3+4: Low-frequency mesh extraction ───────</span>
+<span class="kw">def</span> <span class="fn">low_frequency_mesh</span>(<span class="var">vertices</span>, <span class="var">eigenfunctions</span>, <span class="var">K</span>):
+    <span class="str">"""
+    vertices:       (N, 3) xyz positions
+    eigenfunctions: (N, N) matrix - columns are eigenfunctions
+    K:              how many eigenfunctions to keep (low-pass)
+    Returns smoothed (N, 3) vertex positions
+    """</span>
+    <span class="cm"># Keep only K smoothest eigenfunctions</span>
+    <span class="var">F_K</span> = <span class="var">eigenfunctions</span>[:, :<span class="var">K</span>]        <span class="cm"># (N, K)</span>
+
+    <span class="cm"># Project: cₖ = fₖᵀ · vertices</span>
+    <span class="var">coeffs</span> = <span class="var">F_K</span>.<span class="var">T</span> @ <span class="var">vertices</span>           <span class="cm"># (K, 3)</span>
+
+    <span class="cm"># Reconstruct from K eigenfunctions only</span>
+    <span class="var">vertices_smooth</span> = <span class="var">F_K</span> @ <span class="var">coeffs</span>     <span class="cm"># (N, 3)</span>
+    <span class="kw">return</span> <span class="var">vertices_smooth</span>
+
+<span class="cm"># ── Usage ──────────────────────────────────────────</span>
+<span class="cm"># edges    = [(0,1), (1,2), ...]   from your mesh</span>
+<span class="cm"># vertices = np.array([...])       shape (N, 3)</span>
+
+<span class="var">L</span> = <span class="fn">build_laplacian</span>(<span class="fn">len</span>(<span class="var">vertices</span>), <span class="var">edges</span>)
+<span class="var">eigenvalues</span>, <span class="var">eigenfunctions</span> = <span class="fn">compute_eigenfunctions</span>(<span class="var">L</span>)
+
+<span class="cm"># Strong smoothing - keep only 20 eigenfunctions</span>
+<span class="var">smooth</span> = <span class="fn">low_frequency_mesh</span>(<span class="var">vertices</span>, <span class="var">eigenfunctions</span>, <span class="var">K</span>=<span class="num-c">20</span>)
+
+<span class="cm"># Gentle smoothing - keep 200</span>
+<span class="var">gentle</span> = <span class="fn">low_frequency_mesh</span>(<span class="var">vertices</span>, <span class="var">eigenfunctions</span>, <span class="var">K</span>=<span class="num-c">200</span>)</pre>
+
+    <div class="meme info">
+      <div class="meme-label">ℹ️ Pro tip for large meshes</div>
+      Don't compute all N eigenfunctions if you only need K. Use <code>scipy.sparse.linalg.eigsh(L, k=K)</code> - it computes only the K smallest directly, which is dramatically faster for meshes with thousands of vertices.
+    </div>
+  </section>
+
+</article>
+</div>
+
+<footer>
+  <strong>Geometry Processing</strong> · Spectral Methods · Mesh Analysis
+</footer>
+
+</body>
+</html>
