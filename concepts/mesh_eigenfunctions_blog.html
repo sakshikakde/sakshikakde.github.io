@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mesh Eigen functions - A Fun Ground-Up Guide</title>
+  <title>Mesh Eigen Functions - A Fun Ground-Up Guide</title>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <style>
     :root {
@@ -539,7 +539,7 @@
 <header>
   <div class="header-dots"></div>
   <div class="header-tag">Geometry Processing</div>
-  <h1>Mesh Eigen functions & Spectral Analysis</h1>
+  <h1>Mesh Eigen Functions & Spectral Analysis</h1>
   <p class="header-origin">I kept running into the Laplacian everywhere in geometry processing and couldn't shake the feeling that I didn't <em>really</em> get it - like, why the Laplacian? And what does it even mean to have eigenvectors of one? This representation feels criminally underexplored (at least by me), and I think it has massive potential. So this is me building the intuition, one function at a time. 🐒</p>
 </header>
 
@@ -551,7 +551,7 @@
     <ol>
       <li><a href="#why-laplacian">Why the Laplacian?</a></li>
       <li><a href="#discrete-laplacian">The discrete Laplacian on a mesh</a></li>
-      <li><a href="#Eigen functions">Eigen functions: the mesh's natural patterns</a></li>
+      <li><a href="#Eigen Functions">Eigen functions: the mesh's natural patterns</a></li>
       <li><a href="#small-large">Small λ vs large λ - the frequency story</a></li>
       <li><a href="#low-freq">Extracting the low-frequency mesh</a></li>
       <li><a href="#python">Python implementation</a></li>
@@ -653,7 +653,7 @@
   <div class="section-divider">· · ·</div>
 
   <!-- 3 -->
-  <section id="Eigen functions">
+  <section id="Eigen Functions">
     <h2><span class="section-num">3</span> Eigen functions: the mesh's natural patterns</h2>
 
     <p>Since L is a matrix, we can ask the classic eigenvalue question: are there special functions f where applying L just <em>scales</em> f without changing its pattern?</p>
@@ -686,7 +686,7 @@
       </div>
     </div>
 
-    <h3>Computing Eigen functions in practice</h3>
+    <h3>Computing Eigen Functions in practice</h3>
     <p>Mesh Laplacians are <strong>sparse</strong> - each vertex connects to only ~6 neighbors out of thousands, so L has mostly zeros. Use sparse solvers:</p>
 
     <div class="code-tag">Python</div>
@@ -697,7 +697,7 @@
 <span class="var">eigenvalues</span>, <span class="var">eigenvectors</span> = <span class="fn">scipy.sparse.linalg.eigsh</span>(<span class="var">L</span>, k=<span class="num-c">50</span>)</pre>
 
     <div class="aside">
-      <strong>Eigenvectors vs Eigen functions - same thing!</strong> An eigenvector of L is a vector of N numbers (one per vertex). An Eigen function is a function on the mesh (one value per vertex). They're literally identical objects - just different words depending on whether you're thinking algebraically or geometrically.
+      <strong>Eigen vectors vs Eigen functions - same thing!</strong> An eigenvector of L is a vector of N numbers (one per vertex). An Eigen function is a function on the mesh (one value per vertex). They're literally identical objects - just different words depending on whether you're thinking algebraically or geometrically.
     </div>
   </section>
 
