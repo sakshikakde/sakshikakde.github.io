@@ -554,6 +554,7 @@
       <li><a href="#Eigen Functions">Eigen functions: the mesh's natural patterns</a></li>
       <li><a href="#small-large">Small λ vs large λ - the frequency story</a></li>
       <li><a href="#low-freq">Extracting the low-frequency mesh</a></li>
+      <li><a href="#visualizing-eigenfunctions">Visualizing Eigen functions on the mesh</a></li>
       <li><a href="#python">Python implementation</a></li>
     </ol>
   </nav>
@@ -845,8 +846,47 @@
   <div class="section-divider">· · ·</div>
 
   <!-- 6 -->
+  <section id="visualizing-eigenfunctions">
+    <h2><span class="section-num">6</span> Visualizing Eigen functions on the mesh</h2>
+
+    <p>You can paint any Eigen function directly onto the mesh. Each vertex gets the value from the n-th column of the eigenvector matrix, producing a smooth pattern that lives on the surface.</p>
+
+    <p>The key idea: when you multiply an Eigen function by L, nothing changes except the scale. L does not warp the pattern; it just amplifies or shrinks it by λ.</p>
+
+    <div class="eq">
+      <span class="highlight">L · fₙ = λₙ · fₙ</span>
+      <span class="eq-label">Applying L to an Eigen function only scales it. The pattern is unchanged.</span>
+    </div>
+
+    <div class="meme lightbulb">
+      <div class="meme-label">💡 What this looks like in code</div>
+      Pick the n-th Eigen function and apply L to it. You get back the same vector, just scaled by the eigenvalue.
+    </div>
+
+    <div class="code-tag">Python</div>
+    <pre><span class="cm"># Pick the n-th Eigen function</span>
+<span class="var">ef</span>  = <span class="var">eigenfunctions</span>[:, <span class="var">n</span>]
+<span class="var">Lef</span> = <span class="var">L_dense</span> @ <span class="var">ef</span>
+
+<span class="cm"># Lef ≈ λₙ · ef  (verify it yourself!)</span>
+<span class="cm"># Color mesh vertices by ef to visualize the pattern</span></pre>
+
+    <p>Try this for small n (smooth, slow-varying patterns) and large n (rapidly oscillating patterns). The difference is striking.</p>
+
+    <div class="vis-embed">
+      <div class="vis-header">
+        <span class="vis-title">Interactive: Eigen function visualizer</span>
+        <a href="eigenfunctions.html" target="_blank" class="vis-fullscreen">Open fullscreen ↗</a>
+      </div>
+      <iframe src="eigenfunctions.html" style="width:100%;height:500px;border:none;border-radius:0 0 var(--radius) var(--radius);"></iframe>
+    </div>
+  </section>
+
+  <div class="section-divider">· · ·</div>
+
+  <!-- 7 -->
   <section id="python">
-    <h2><span class="section-num">6</span> Python implementation</h2>
+    <h2><span class="section-num">7</span> Python implementation</h2>
 
     <p>Here's the full pipeline - clean, commented, and ready to drop into your project:</p>
 
