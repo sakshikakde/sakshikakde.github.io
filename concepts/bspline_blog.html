@@ -441,7 +441,7 @@
     <p class="header-sub">A friend shared a paper called <a href="https://arxiv.org/pdf/2604.12894" target="_blank" style="color:rgba(255,255,255,0.85); text-decoration:underline;">CUBE</a>. It's about encoding faces as B-spline volumes. Sounded elegant until I realised I had no idea what a B-spline volume was.</p>
   </div>
   <div class="header-meme">
-    <img src="../assets/math_lady.png" alt="Math lady meme">
+    <img src="../assets/math_lady.png" alt="Math lady meme" style="width:320px;">
   </div>
   </div>
 </header>
@@ -461,7 +461,7 @@
   <section id="1d">
     <h2><span class="section-num">1</span> 1D B-splines in detail</h2>
 
-    <p>If you are reading this blog, you must be familiar with B-splines, mostly in context of curve fitting. This section is a quick refresher and a buildup for extending it to 3D.</p>
+    <p>If you are reading this blog, you must be familiar with <a href="https://www.kenkoonwong.com/blog/bspline/" target="_blank">B-splines</a>, mostly in context of curve fitting. This section is a quick refresher and a buildup for extending it to 3D.</p>
 
     <!-- <div class="meme info">
       <div class="meme-label">ℹ️ Why not just fit a polynomial?</div>
@@ -471,7 +471,18 @@
     <p>The goal is to draw a smooth curve through space that you can control locally.</p>
     <p>You have a set of handles (control points). Move one handle and a nearby section of the curve follows. The rest of the curve stays put. The curve is always smooth, always well-behaved, no matter how many handles you have.</p>
 
-    <h3>Control points, the handles</h3>
+    <div class="demo-box" id="demo2d-box">
+      <div class="demo-title">Interactive — drag the red control points to reshape the curve</div>
+      <div style="display:flex; gap:16px; justify-content:center; margin-bottom:10px; flex-wrap:wrap;">
+        <span style="font-size:12px; font-weight:700; background:var(--red-bg); color:var(--accent); border:1.5px solid #f5c4b4; border-radius:100px; padding:3px 12px;">4 control points</span>
+        <span style="font-size:12px; font-weight:700; background:var(--blue-bg); color:var(--blue); border:1.5px solid #b4d0f5; border-radius:100px; padding:3px 12px;">degree 2</span>
+      </div>
+      <canvas id="c2d" height="340"></canvas>
+      <p style="font-size:13px; color:var(--muted); font-style:italic; text-align:center; margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+        The dashed polygon connects control points. The blue curve is pulled toward them without touching them. Drag any red dot to see the curve reshape instantly.
+      </p>
+    </div>
+    <h3>Control points</h3>
     <p>Let's start simple. Place 4 points anywhere in 2D space and call them P₁, P₂, P₃, P₄. Remember, these are <em>not</em> points on the curve. They don't sit on it. They <em>pull</em> it, like magnets. The curve bends toward them but never has to touch them.</p>
 
     <div class="meme lightbulb" style="display:flex; align-items:center; gap:24px;">
@@ -493,20 +504,31 @@
 
 <h3>Basis functions</h3>
 
-    <p>So we have the formula <code>curve(u) = N₁(u)·P₁ + N₂(u)·P₂ + N₃(u)·P₃</code>.</p>
+    <p>Here is the first thing to internalize. For a degree-2 spline, at most <strong>degree + 1 = 3</strong> control points have non-zero weight at any given u. Always. This is local support stated precisely. If you have 4 control points, exactly one of them has zero weight at any u. If you have 10 control points, at least 7 of them have zero weight. The curve only ever talks to 3 neighbours at a time, no matter how many control points you have in total.</p>
 
-    <p>Each Nᵢ(u) is a smooth bump centered at control point i. It peaks near its control point's region, fades to zero as you move away, and is zero outside its local territory. If a basis function is zero at u, that control point has no say in where the curve goes at u.</p>
+    <div class="meme lightbulb">
+      <div class="meme-label">💡 Why this matters</div>
+      Move control point P₄ and only the nearby region of the curve responds. The 3 active neighbours shift, everyone else stays exactly put. This is what makes B-splines practical for complex shapes. You get precise local control, not a global ripple through the entire curve.
+    </div>
 
-    <p>For degree 2 with 3 control points, the basis functions turn out to be the <strong>binomial expansion</strong> of ((1−u) + u)²:</p>
+    <p>So what are these weight functions Nᵢ(u) concretely? Each one is a smooth bump. It rises from zero, peaks near its control point's region of parameter space, then fades back to zero. Outside its local territory it is exactly zero, which is what enforces the degree+1 rule above.</p>
+
+    <p>For degree 2 with 3 control points, we can write them out explicitly. They turn out to be the <strong>binomial expansion</strong> of ((1−u) + u)²:</p>
 
     <div class="eq">
       <span class="highlight">N₁(u) = (1−u)²&nbsp;&nbsp;&nbsp;&nbsp;N₂(u) = 2u(1−u)&nbsp;&nbsp;&nbsp;&nbsp;N₃(u) = u²</span>
-      <span class="eq-label">These are Bernstein polynomials of degree 2. They always sum to 1, guaranteeing a true weighted average.</span>
+      <span class="eq-label">Bernstein polynomials of degree 2. They always sum to 1, guaranteeing a true weighted average.</span>
     </div>
+
+    <p>With more control points this closed form breaks down and you need the <a href="https://demonstrations.wolfram.com/GeneratingABSplineCurveByTheCoxDeBoorAlgorithm/" target="_blank">Cox-de Boor recursion</a>, covered in the next section. But the shape of the weights stays the same: smooth bumps, summing to 1, exactly degree+1 of them active at any u.</p>
 
     <!-- Interactive 1D demo -->
     <div class="demo-box">
       <div class="demo-title">Interactive — drag the u slider and watch the weights change</div>
+      <div style="display:flex; gap:16px; justify-content:center; margin-bottom:10px; flex-wrap:wrap;">
+        <span style="font-size:12px; font-weight:700; background:var(--red-bg); color:var(--accent); border:1.5px solid #f5c4b4; border-radius:100px; padding:3px 12px;">3 control points</span>
+        <span style="font-size:12px; font-weight:700; background:var(--blue-bg); color:var(--blue); border:1.5px solid #b4d0f5; border-radius:100px; padding:3px 12px;">degree 2</span>
+      </div>
       <canvas id="c1d" height="200"></canvas>
       <div class="demo-controls">
         <label>u position</label>
@@ -536,58 +558,58 @@
         </div>
       </div>
       <p style="font-size:13px; color:var(--muted); font-style:italic; text-align:center; margin-top:16px; padding-top:12px; border-top:1px solid var(--border);">
-        At u = 0, N₁ = 1 and everything else is zero — the curve starts exactly at P₁. At u = 1, N₃ = 1 — it ends at P₃. At u = 0.5, N₂ peaks and dominates — the curve is pulled hardest toward P₂. The curve always gravitates toward whichever control point owns that region of parameter space.
+        At u = 0, N₁ = 1 and everything else is zero — the curve starts at P₁. At u = 1, N₃ = 1 — it ends at P₃. At u = 0.5, N₂ peaks and the curve is pulled hardest toward P₂. Notice that the sum bar is always 1. That is the weighted average guarantee holding everywhere.
       </p>
     </div>
-        <p>This is the core mechanic. The basis functions are just a smooth handoff of influence from one control point to the next as u travels from 0 to 1.</p>
 
-    <h3>The knot vector</h3>
+    <p>This is the core mechanic. The basis functions are a smooth baton pass of influence from one control point to the next as u sweeps from 0 to 1. At any moment only 3 runners are holding the baton.</p>
+<h3>The knot vector</h3>
 
-<p>Here is the problem. Three control points gave us one smooth arc. But what if you want a long, complex curve with many control points? You could fit one giant high-degree polynomial through all of them, but that leads to Runge's phenomenon: wild oscillations and numerical instability.</p>
+<p>Here is the problem. Three control points gave us one smooth arc. But what if you want a long, complex curve with many control points? 
+  You could fit one giant high-degree polynomial through all of them, but that leads to <a href="https://en.wikipedia.org/wiki/Runge%27s_phenomenon" target="_blank">Runge's phenomenon</a>: wild oscillations and numerical instability.</p>
 
-    <p>The B-spline solution is much smarter. Instead of one big polynomial, stitch together, for example, many small cubic pieces, each controlled by just 4 nearby points. The <strong>knot vector</strong> is simply the schedule that tells you where each piece starts and ends along the u axis.</p>
+<p>The B-spline solution is much smarter. Instead of one big polynomial, stitch together many small quadratic pieces, each controlled by just 3 nearby points. The <strong>knot vector</strong> is simply the schedule that tells you where each piece starts and ends along the u axis.</p>
 
-    <p>For 6 control points, degree 3, a uniform knot vector looks like:</p>
+<p>For 4 control points, degree 2, a uniform knot vector looks like:</p>
 
-    <div class="eq">
-      <span class="highlight">knots = [0, 0, 0, 0, 0.33, 0.66, 1, 1, 1, 1]</span>
-      <span class="eq-label">Length = n_control_points + degree + 1 = 6 + 3 + 1 = 10. Always.</span>
-    </div>
+<div class="eq">
+  <span class="highlight">knots = [0, 0, 0, 0.5, 1, 1, 1]</span>
+  <span class="eq-label">Length = n_control_points + degree + 1 = 4 + 2 + 1 = 7. Always.</span>
+</div>
 
-<p>Let's read this out loud. The four 0s at the start and four 1s at the end are repeated on purpose. They pin the curve so it starts exactly at P₁ and ends exactly at P₆. Without them the curve would float away from its endpoints.</p>
+<p>Let's read this out loud. The three 0s at the start and three 1s at the end are repeated on purpose. They pin the curve so it starts exactly at P₁ and ends exactly at P₄. Without them the curve would float away from its endpoints.</p>
 
-    <p>The interior values 0.33 and 0.66 are just mile markers on the u axis. They are not control points. They have no position in space. They simply say: segment 1 runs from u = 0 to u = 0.33, segment 2 from 0.33 to 0.66, segment 3 from 0.66 to 1. That is all a knot vector does.</p>
+<p>The interior value 0.5 is just a mile marker on the u axis. It is not a control point. It has no position in space. It simply says: segment 1 runs from u = 0 to u = 0.5, segment 2 from 0.5 to 1. That is all a knot vector does.</p>
 
-    <div class="knot-viz">
-      <span class="knot-val">[</span>
-      <span class="knot-seg inactive">0</span>
-      <span class="knot-seg inactive">0</span>
-      <span class="knot-seg inactive">0</span>
-      <span class="knot-seg inactive">0</span>
-      <span class="knot-seg active">0.33 → seg boundary</span>
-      <span class="knot-seg active">0.66 → seg boundary</span>
-      <span class="knot-seg inactive">1</span>
-      <span class="knot-seg inactive">1</span>
-      <span class="knot-seg inactive">1</span>
-      <span class="knot-seg inactive">1</span>
-      <span class="knot-val">]</span>
-    </div>
+<div class="knot-viz">
+  <span class="knot-val">[</span>
+  <span class="knot-seg inactive">0</span>
+  <span class="knot-seg inactive">0</span>
+  <span class="knot-seg inactive">0</span>
+  <span class="knot-seg active">0.5 → seg boundary</span>
+  <span class="knot-seg inactive">1</span>
+  <span class="knot-seg inactive">1</span>
+  <span class="knot-seg inactive">1</span>
+  <span class="knot-val">]</span>
+</div>
 
-    <p>Here is a concrete example. Say you are evaluating the curve at u = 0.4.
-       You look at the knot vector and ask: which span does 0.4 fall in? It falls between 0.33 and 0.66, so you are in segment 2. 
-       Now, which control points govern segment 2? The rule is simple: for degree 3, each segment uses exactly 4 consecutive control points starting at the span index minus the degree.
-        Segment 2 is the second active span, which sits at index 4 in the knot vector (counting from 0). So the starting control point is index 4 minus 3 = 1, giving us P₂, P₃, P₄, P₅ (1-indexed). 
-        That is the only information the knot vector gives you - which four control points to use.</p>
+<p>Here is a concrete example. Say you are evaluating the curve at u = 0.6.
+   You look at the knot vector and ask: which span does 0.6 fall in? It falls between 0.5 and 1, so you are in segment 2.
+   Now, which control points govern segment 2? The rule is simple: for degree 2, each segment uses exactly 3 consecutive control points starting at the span index minus the degree.
+   Segment 2 is the second active span, which sits at index 3 in the knot vector (counting from 0). So the starting control point is index 3 minus 2 = 1, giving us P₂, P₃, P₄ (1-indexed).
+   That is the only information the knot vector gives you - which three control points to use.</p>
 
-    <div class="aside">
-      <strong>Why 0.33 and not some other value?</strong> It's just 1/3 equally dividing the [0,1] range into 3 segments. You could use any value.
-       Non-uniform knot spacing lets you put more detail in certain regions.
-    </div>
+<div class="aside">
+  <strong>Why 0.5 and not some other value?</strong> It's just 1/2, equally dividing the [0,1] range into 2 segments. You could use any value.
+   Non-uniform knot spacing lets you put more detail in certain regions.
+</div>
 
 <h3>Where do the weights come from?</h3>
 
-    <p>So far we have used the basis functions N₁(u), N₂(u), N₃(u) as if they just exist. For 3 control points and degree 2, we could write them out as closed-form polynomials. But what happens when you have 6, 10, or 100 control points? You need a general algorithm that computes the right weights for any u. That algorithm is the Cox-de Boor recursion.</p>
-
+    <p>So far we have used the basis functions N₁(u), N₂(u), N₃(u) as if they just exist. For 3 control points and degree 2, we could write them out as closed-form polynomials.
+       But what happens when you have 6, 10, or 100 control points? You need a general algorithm that computes the right weights for any u.
+        That algorithm is the
+<a href="https://demonstrations.wolfram.com/GeneratingABSplineCurveByTheCoxDeBoorAlgorithm/" target="_blank">Cox-de Boor recursion</a> </p>
     <p>The idea is to build the smooth bump functions from scratch, starting from something extremely simple and refining it step by step. Here is how it works.</p>
 
     <div class="pipeline">
@@ -649,6 +671,17 @@
 <span class="cm"># 3. Repeat for many u values → the full curve</span>
 <span class="var">curve</span> = [<span class="fn">compute</span>(<span class="var">u</span>) <span class="kw">for</span> <span class="var">u</span> <span class="kw">in</span> <span class="fn">np.linspace</span>(<span class="num-c">0</span>, <span class="num-c">1</span>, <span class="num-c">200</span>)]</pre>
 
+    <div class="demo-box" id="demo2d-box-b">
+      <div class="demo-title">Interactive — drag the red control points to reshape the curve</div>
+      <div style="display:flex; gap:16px; justify-content:center; margin-bottom:10px; flex-wrap:wrap;">
+        <span style="font-size:12px; font-weight:700; background:var(--red-bg); color:var(--accent); border:1.5px solid #f5c4b4; border-radius:100px; padding:3px 12px;">4 control points</span>
+        <span style="font-size:12px; font-weight:700; background:var(--blue-bg); color:var(--blue); border:1.5px solid #b4d0f5; border-radius:100px; padding:3px 12px;">degree 2</span>
+      </div>
+      <canvas id="c2d-b" height="340"></canvas>
+      <p style="font-size:13px; color:var(--muted); font-style:italic; text-align:center; margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+        The dashed polygon connects control points. The blue curve is pulled toward them without touching them. Drag any red dot to see the curve reshape instantly.
+      </p>
+    </div>
 
     <div class="meme check">
       <div class="meme-label">✅ What you now understand about 1D B-splines</div>
@@ -699,31 +732,20 @@
       </div>
     </div>
 
-    <div class="demo-box" id="demo2d-box">
-      <div class="demo-title">Interactive — drag the red control points to reshape the curve</div>
-      <div style="display:flex; gap:16px; justify-content:center; margin-bottom:10px; flex-wrap:wrap;">
-        <span style="font-size:12px; font-weight:700; background:var(--red-bg); color:var(--accent); border:1.5px solid #f5c4b4; border-radius:100px; padding:3px 12px;">6 control points</span>
-        <span style="font-size:12px; font-weight:700; background:var(--blue-bg); color:var(--blue); border:1.5px solid #b4d0f5; border-radius:100px; padding:3px 12px;">degree 3</span>
-      </div>
-      <canvas id="c2d" height="340"></canvas>
-      <p style="font-size:13px; color:var(--muted); font-style:italic; text-align:center; margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-        The dashed polygon connects control points. The blue curve is pulled toward them without touching them. Drag any red dot to see the curve reshape instantly.
-      </p>
-    </div>
+
 
     <script>
-    (function() {
-      const canvas = document.getElementById('c2d');
+    function init2dDemo(canvasId) {
+      const canvas = document.getElementById(canvasId);
       const ctx    = canvas.getContext('2d');
-      const DEGREE = 3;
+      const DEGREE = 2;
       const N_SAMPLES = 200;
       const POINT_RADIUS = 8;
       const COLORS = { curve: '#2060c0', polygon: '#aaaaaa', point: '#e03030', label: '#c00000' };
 
       // Control points in [0,1] normalised space — converted to canvas px on draw
       let cps = [
-        [0.10, 0.50], [0.25, 0.15], [0.45, 0.80],
-        [0.55, 0.20], [0.75, 0.85], [0.90, 0.50],
+        [0.15, 0.50], [0.38, 0.15], [0.62, 0.85], [0.85, 0.50],
       ];
 
       let dragging = null;
@@ -831,7 +853,7 @@
 
           ctx.fillStyle = COLORS.label;
           ctx.font = 'bold 12px Nunito, sans-serif';
-          ctx.fillText('P' + i, nx*W + 11, ny*H + 4);
+          ctx.fillText('P' + (i + 1), nx*W + 11, ny*H + 4);
         });
 
         ctx.restore();
@@ -888,14 +910,19 @@
 
       window.addEventListener('resize', resize);
       resize();
-    })();
+    }
+    init2dDemo('c2d');
+    init2dDemo('c2d-b');
     </script>
 
-    <div class="aside">
-      <strong>A concrete example.</strong> Imagine a clay ball inside a glass box. A 2D spline would let you describe the surface of the clay. 
-      A 3D spline lets you grab the glass walls and squeeze and the clay deforms accordingly, because every point inside the glass follows the warp. The glass is the cage. The clay is your mesh.
-    </div>
-
+<div class="aside">
+  <strong>A concrete example.</strong> Think of those squishy water-filled toy balls with a rubber 
+  figurine sealed inside. The outer rubber shell is your cage, a coarse surface surrounding the 
+  figurine. When you squeeze one side of the ball, the water pressure shifts and the figurine inside 
+  deforms. It stretches where you push, compresses where you squeeze, all without you 
+  touching the figurine directly. Your mesh works the same way: move a cage point and the geometry 
+  inside follows smoothly, as if suspended in fluid.
+</div>
 <h3>First, let's go to 2D: a surface</h3>
 
     <p>Before jumping to 3D volumes, let's do 2D first. The goal here is different from 1D. In 1D we drew a curve through space. In 2D we want to fit a <strong>curved surface to a set of 3D points</strong>. Think of a bumpy hillside, or a car hood, or a face. You have a cloud of 3D points and you want a smooth sheet that approximates them.</p>
@@ -1307,18 +1334,29 @@
 
     
 
-    <div class="aside">
-      <strong>This is exactly what CUBE builds on.</strong> Standard B-spline volumes store a 3D position (x,y,z) at each control point.
-      When you query the volume at (u,v,w), you get back a 3D position — the reconstructed vertex location. Simple, but limited.
-      A coarse 4×4×4 cage does not have enough degrees of freedom to capture fine wrinkles, pores, or person-specific surface detail.
-      You are asking 64 control points to describe an entire human face. They can get the rough shape right, but the detail is gone.
-CUBE fixes this with one conceptual swap.
- Instead of storing (x,y,z) at each control point, store a 1024-dimensional feature vector. 
- The B-spline math is completely unchanged.
-  You still compute the tensor product weights Wu[i]·Wv[j]·Ww[k] exactly as before.
-  The only difference is that instead of interpolating 3 numbers, you are now interpolating 1024 numbers. 
-  The output of querying the volume is no longer a 3D point. 
-  It is a 1024-dimensional feature vector floating in a high-dimensional space that the network has learned to use.
+    <div class="meme brain">
+      <div class="meme-label">🧠 This is exactly what CUBE builds on</div>
+      <p style="margin-bottom:10px;">Standard B-spline volumes store a 3D position (x,y,z) at each control point. When you query the volume at (u,v,w), you get back a 3D position: the reconstructed vertex location.</p>
+      <p style="margin-bottom:10px;"><strong>Simple, but limited.</strong> A coarse 4×4×4 cage does not have enough degrees of freedom to capture fine wrinkles, pores, or person-specific surface detail.</p>
+      <p style="margin:0;">You are asking <strong>64 control points</strong> to describe an entire human face. They can get the rough shape right, but the detail is gone.</p>
+    </div>
+
+    <div class="meme fire">
+      <div class="meme-label">🔥 The one conceptual swap CUBE makes</div>
+      <p style="margin-bottom: 12px;">Instead of storing <strong>(x, y, z)</strong> at each control point, store a <strong>1024-dimensional feature vector</strong>. That is the entire idea.</p>
+      <div style="display:flex; gap:16px; flex-wrap:wrap; margin: 4px 0 8px;">
+        <div style="flex:1; min-width:180px; background:var(--surface); border:2px solid #f5c4b4; border-radius:8px; padding:14px 18px;">
+          <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:6px;">Standard B-spline volume</div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:14px;">cp[i,j,k] = (x, y, z)</div>
+          <div style="font-size:12px; color:var(--muted); margin-top:6px;">3 numbers per control point</div>
+        </div>
+        <div style="flex:1; min-width:180px; background:var(--surface); border:2px solid var(--accent); border-radius:8px; padding:14px 18px;">
+          <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent); margin-bottom:6px;">CUBE</div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:14px;">cp[i,j,k] = <strong>f</strong> ∈ ℝ¹⁰²⁴</div>
+          <div style="font-size:12px; color:var(--muted); margin-top:6px;">1024 numbers per control point</div>
+        </div>
+      </div>
+      <p style="margin:0; font-size:15px;">The B-spline math is completely unchanged. You still compute Wu[i]·Wv[j]·Ww[k] exactly as before. The only difference: instead of interpolating 3 numbers you are interpolating 1024. The output is no longer a 3D point — it is a feature vector that a residual MLP decodes into fine geometric detail.</p>
     </div>
 
   </section>
@@ -1326,6 +1364,16 @@ CUBE fixes this with one conceptual swap.
   <div style="text-align:center; margin: 48px 0 16px;">
     <img src="../assets/thats_all.png" alt="That's all folks meme" style="max-width:400px; width:100%; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,0.12);">
   </div>
+
+  <section style="margin-top: 56px;">
+    <h2 style="font-family:'Fraunces',serif; font-size:1.4rem; font-weight:700; margin-bottom:20px; color:var(--text);">References</h2>
+    <ol style="padding-left:20px; font-size:15px; line-height:2.2; color:var(--muted);">
+      <li><a href="https://arxiv.org/pdf/2604.12894" target="_blank" style="color:var(--blue); font-weight:600;">CUBE: Encoding Faces as B-Spline Volumes</a>: the paper that started this blog post.</li>
+      <li><a href="https://www.kenkoonwong.com/blog/bspline/" target="_blank" style="color:var(--blue); font-weight:600;">B-Splines, Ken Koon Wong</a>: an accessible intro to B-splines in context of curve fitting.</li>
+      <li><a href="https://demonstrations.wolfram.com/GeneratingABSplineCurveByTheCoxDeBoorAlgorithm/" target="_blank" style="color:var(--blue); font-weight:600;">Cox-de Boor Algorithm, Wolfram Demonstrations</a>: interactive visualisation of the recursion.</li>
+      <li><a href="https://en.wikipedia.org/wiki/Runge%27s_phenomenon" target="_blank" style="color:var(--blue); font-weight:600;">Runge's Phenomenon, Wikipedia</a>: why high-degree global polynomials oscillate wildly near the edges.</li>
+    </ol>
+  </section>
 
 </article>
 </div>
