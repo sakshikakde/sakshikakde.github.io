@@ -42,11 +42,20 @@
     header {
       background: var(--text);
       color: #fff;
-      padding: 72px 24px 60px;
-      text-align: center;
+      padding: 60px 24px 52px;
       position: relative;
       overflow: hidden;
     }
+    .header-inner {
+      max-width: 760px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 48px;
+    }
+    .header-text { flex: 1; position: relative; }
+    .header-meme { flex-shrink: 0; position: relative; z-index: 1; }
+    .header-meme img { width: 200px; border-radius: 6px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: block; }
 
     .header-dots {
       position: absolute;
@@ -538,9 +547,16 @@
 
 <header>
   <div class="header-dots"></div>
-  <div class="header-tag">Geometry Processing</div>
-  <h1>Mesh Eigen Functions & Spectral Analysis</h1>
-  <p class="header-origin">I kept running into the Laplacian everywhere in geometry processing and couldn't shake the feeling that I didn't <em>really</em> get it - like, why the Laplacian? And what does it even mean to have eigenvectors of one? This representation feels criminally underexplored (at least by me), and I think it has massive potential. So this is me building the intuition, one function at a time. 🐒</p>
+  <div class="header-inner">
+    <div class="header-text">
+      <div class="header-tag">Geometry Processing</div>
+      <h1>Mesh Eigen Functions & Spectral Analysis</h1>
+      <p class="header-origin">I kept running into the Laplacian everywhere in geometry processing and couldn't shake the feeling that I didn't <em>really</em> get it - like, why the Laplacian? And what does it even mean to have eigenvectors of one? This representation feels criminally underexplored (at least by me), and I think it has massive potential. So this is me building the intuition, one function at a time. 🐒</p>
+    </div>
+    <div class="header-meme">
+      <img src="../assets/get_it.png" alt="Get it meme">
+    </div>
+  </div>
 </header>
 
 <div class="container">
@@ -953,6 +969,10 @@
       Don't compute all N Eigen functions if you only need K. Use <code>scipy.sparse.linalg.eigsh(L, k=K)</code> - it computes only the K smallest directly, which is dramatically faster for meshes with thousands of vertices.
     </div>
   </section>
+
+  <div style="text-align:center; margin: 48px 0 16px;">
+    <img src="../assets/got_this.png" alt="Got this meme" style="max-width:400px; width:100%; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,0.12);">
+  </div>
 
 </article>
 </div>
