@@ -925,6 +925,10 @@
 </div>
 <h3>First, let's go to 2D: a surface</h3>
 
+    <div style="text-align:center; margin: 16px 0;">
+      <img src="../assets/relax.png" alt="Relax meme" style="max-width:300px; width:100%; border-radius:6px; box-shadow:0 4px 16px rgba(0,0,0,0.12);">
+    </div>
+
     <p>Before jumping to 3D volumes, let's do 2D first. The goal here is different from 1D. In 1D we drew a curve through space. In 2D we want to fit a <strong>curved surface to a set of 3D points</strong>. Think of a bumpy hillside, or a car hood, or a face. You have a cloud of 3D points and you want a smooth sheet that approximates them.</p>
 
     <p>The way B-splines handle this is elegant. Instead of one row of control points, you now have a <strong>grid</strong> of control points indexed by (i, j). And instead of one parameter u, you now have two: u and v. Together (u, v) is your address on the surface, just like latitude and longitude on a globe.</p>
