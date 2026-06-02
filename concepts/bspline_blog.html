@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>B-Spline Volumes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #faf8f3;
+      --surface: #ffffff;
+      --surface2: #f3f0e8;
+      --border: #e2ddd0;
+      --text: #2a2520;
+      --muted: #7a6f60;
+      --accent: #d4500a;
+      --blue: #1a5fa8;
+      --green: #1e7c4a;
+      --purple: #6b3fa0;
+      --yellow: #f5c842;
+      --yellow-bg: #fffbea;
+      --red-bg: #fff1ee;
+      --blue-bg: #eef5ff;
+      --green-bg: #edfaf3;
+      --purple-bg: #f5f0ff;
+      --radius: 10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 17px;
+      line-height: 1.8;
+      font-weight: 400;
+    }
+    header {
+      background: var(--text);
+      color: #fff;
+      padding: 60px 24px 52px;
+      position: relative;
+      overflow: hidden;
+    }
+    .header-inner {
+      max-width: 760px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 48px;
+    }
+    .header-text {
+      flex: 1;
+      max-width: 600px;
+      position: relative;
+    }
+    .header-meme {
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+      margin-top: 80px;
+    }
+    .header-meme img {
+      width: 220px;
+      border-radius: 4px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      display: block;
+    }
+    .header-meme .meme-caption {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      margin-top: 8px;
+      font-style: italic;
+      letter-spacing: 0.04em;
+    }
+    .header-dots {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    .header-tag {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.1;
+      max-width: 680px;
+      margin: 0 0 16px;
+      position: relative;
+    }
+    .header-sub {
+      color: rgba(255,255,255,0.6);
+      font-size: 15px;
+      max-width: 500px;
+      margin: 0;
+      position: relative;
+    }
+    .container { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+    article { padding: 60px 0 100px; }
+    .toc {
+      background: var(--yellow-bg);
+      border: 2px solid var(--yellow);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 56px;
+      position: relative;
+    }
+    .toc::before {
+      content: "📋";
+      position: absolute;
+      top: -14px; left: 20px;
+      font-size: 22px;
+      background: var(--yellow-bg);
+      padding: 0 6px;
+    }
+    .toc-title {
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .toc ol { padding-left: 20px; }
+    .toc li { margin: 6px 0; font-size: 15px; }
+    .toc a { color: var(--blue); text-decoration: none; font-weight: 600; }
+    .toc a:hover { text-decoration: underline; }
+    section { margin-bottom: 72px; }
+    h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.9rem;
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 18px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px; height: 36px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      font-family: 'Nunito', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    h3 {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin: 28px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    p { margin-bottom: 16px; }
+    strong { font-weight: 700; }
+    em { font-style: italic; color: var(--muted); }
+    .meme {
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin: 28px 0;
+      border: 2px solid;
+      position: relative;
+    }
+    .meme-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .meme.brain { background: var(--purple-bg); border-color: #c4b0e8; }
+    .meme.brain .meme-label { color: var(--purple); }
+    .meme.fire { background: var(--red-bg); border-color: #f5c4b4; }
+    .meme.fire .meme-label { color: var(--accent); }
+    .meme.lightbulb { background: var(--yellow-bg); border-color: var(--yellow); }
+    .meme.lightbulb .meme-label { color: #9a7a00; }
+    .meme.check { background: var(--green-bg); border-color: #a8dfc0; }
+    .meme.check .meme-label { color: var(--green); }
+    .meme.info { background: var(--blue-bg); border-color: #b4d0f5; }
+    .meme.info .meme-label { color: var(--blue); }
+    .aside {
+      background: var(--surface2);
+      border-left: 4px solid var(--yellow);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 16px 20px;
+      margin: 24px 0;
+      font-size: 15px;
+      color: var(--muted);
+      font-style: italic;
+    }
+    .aside strong { color: var(--text); font-style: normal; }
+    .eq {
+      background: var(--text);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      margin: 24px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      text-align: center;
+      letter-spacing: 0.02em;
+      position: relative;
+    }
+    .eq .eq-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      display: block;
+      margin-top: 6px;
+      font-family: 'Nunito', sans-serif;
+      letter-spacing: 0.04em;
+    }
+    .eq .highlight { color: var(--yellow); font-weight: 500; }
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      font-size: 15px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 2px solid var(--border);
+    }
+    .compare-table th {
+      background: var(--text);
+      color: #fff;
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .compare-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      vertical-align: top;
+    }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table tr:nth-child(even) td { background: var(--surface2); }
+    .compare-table td:first-child { color: var(--text); font-weight: 700; }
+    .hot-take {
+      background: var(--accent);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 16px 22px;
+      margin: 28px 0;
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .hot-take .ht-icon { font-size: 24px; flex-shrink: 0; }
+    .analogy-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 24px 0;
+    }
+    .analogy-col {
+      border-radius: var(--radius);
+      border: 2px solid;
+      padding: 18px;
+    }
+    .analogy-col.left { border-color: #b4d0f5; background: var(--blue-bg); }
+    .analogy-col.right { border-color: #f5c4b4; background: var(--red-bg); }
+    .analogy-col-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+    .analogy-col.left .analogy-col-title { color: var(--blue); }
+    .analogy-col.right .analogy-col-title { color: var(--accent); }
+    .analogy-col p { font-size: 14px; margin-bottom: 0; color: var(--text); }
+    .pipeline { margin: 28px 0; display: flex; flex-direction: column; gap: 0; }
+    .pipe-step { display: flex; align-items: flex-start; gap: 16px; }
+    .pipe-connector { display: flex; flex-direction: column; align-items: center; width: 40px; flex-shrink: 0; }
+    .pipe-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 4px; border: 2px solid #fff; box-shadow: 0 0 0 2px var(--accent); }
+    .pipe-line { width: 2px; flex: 1; min-height: 24px; background: var(--border); margin: 4px 0; }
+    .pipe-content { flex: 1; padding-bottom: 22px; }
+    .pipe-title { font-weight: 800; color: var(--text); font-size: 15px; margin-bottom: 3px; }
+    .pipe-desc { font-size: 14px; color: var(--muted); }
+    .pipe-eq { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); margin-top: 5px; background: var(--red-bg); display: inline-block; padding: 3px 8px; border-radius: 4px; }
+    pre {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      border-radius: var(--radius);
+      padding: 24px;
+      overflow-x: auto;
+      margin: 28px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      line-height: 1.75;
+      border: 2px solid #2a2a3e;
+    }
+    .code-tag {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+    .kw { color: #cba6f7; }
+    .fn { color: #89dceb; }
+    .str { color: #a6e3a1; }
+    .cm { color: #6c7086; font-style: italic; }
+    .num-c { color: #fab387; }
+    .cls { color: #89b4fa; }
+    .var { color: #cdd6f4; }
+    .section-divider {
+      text-align: center;
+      margin: 56px 0 48px;
+      color: var(--border);
+      font-size: 20px;
+      letter-spacing: 12px;
+    }
+    /* ── Visual demos ── */
+    .demo-box {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 28px 0;
+    }
+    .demo-box canvas { display: block; width: 100%; }
+    .demo-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 16px;
+      align-items: center;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .demo-controls label { font-weight: 700; color: var(--text); min-width: 120px; }
+    .demo-controls input[type=range] { flex: 1; min-width: 120px; accent-color: var(--accent); }
+    .demo-controls span { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); min-width: 40px; }
+    .demo-title {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .weight-bars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 14px; }
+    .weight-bar-wrap { text-align: center; }
+    .weight-bar-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .weight-bar-track { height: 60px; background: var(--surface2); border-radius: 4px; position: relative; overflow: hidden; border: 1px solid var(--border); }
+    .weight-bar-fill { position: absolute; bottom: 0; left: 0; right: 0; background: var(--accent); transition: height 0.1s; }
+    .weight-bar-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); font-weight: 700; margin-top: 4px; }
+    .knot-viz { display: flex; align-items: center; gap: 0; margin: 20px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; overflow-x: auto; }
+    .knot-seg { padding: 10px 14px; border: 2px solid var(--border); background: var(--surface); color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .knot-seg.inactive { background: var(--surface2); color: var(--border); }
+    .knot-seg.active { background: var(--red-bg); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+    .knot-val { padding: 10px 8px; font-weight: 700; color: var(--text); white-space: nowrap; }
+    /* 3D grid illustration */
+    .grid-3d-wrap { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; margin: 24px 0; }
+    .grid-layer { text-align: center; }
+    .grid-layer-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; }
+    .grid-dots { display: grid; gap: 8px; }
+    .grid-dot {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid var(--accent);
+      background: var(--red-bg);
+      display: inline-block;
+    }
+    .grid-dot.active { background: var(--accent); }
+    .origin-story {
+      border-left: 4px solid var(--accent);
+      background: var(--red-bg);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 28px 32px;
+      margin-bottom: 48px;
+    }
+    .origin-story p {
+      font-size: 16px;
+      color: var(--text);
+      margin-bottom: 12px;
+      line-height: 1.8;
+    }
+    .origin-story p:last-child { margin-bottom: 0; }
+    .origin-story a { color: var(--blue); font-weight: 700; text-decoration: none; }
+    .origin-story a:hover { text-decoration: underline; }
+    footer {
+      background: var(--text);
+      color: rgba(255,255,255,0.5);
+      padding: 36px 24px;
+      text-align: center;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    footer strong { color: #fff; }
+    @media (max-width: 600px) {
+      h1 { font-size: 1.8rem; }
+      h2 { font-size: 1.45rem; }
+      .analogy-cols { grid-template-columns: 1fr; }
+      pre { font-size: 12px; padding: 16px; }
+      .weight-bars { grid-template-columns: repeat(4,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-dots"></div>
+  <div class="header-inner">
+  <div class="header-text">
+    <div class="header-tag">Geometry Processing</div>
+    <h1>B-Spline Volumes</h1>
+    <p class="header-sub">A friend shared a paper called <a href="https://arxiv.org/pdf/2604.12894" target="_blank" style="color:rgba(255,255,255,0.85); text-decoration:underline;">CUBE</a>. It's about encoding faces as B-spline volumes. Sounded elegant until I realised I had no idea what a B-spline volume was.</p>
+  </div>
+  <div class="header-meme">
+    <img src="../assets/math_lady.png" alt="Math lady meme">
+  </div>
+  </div>
+</header>
+
+<div class="container">
+<article>
+  <nav class="toc">
+    <div class="toc-title">What's in this post</div>
+    <ol>
+      <li><a href="#1d">1D B-splines in detail: control points, knot vectors, weights, and the curve</a></li>
+      <li><a href="#3d">Extending to 3D: why weights become a tensor product</a></li>
+      <li><a href="#sphere">The sphere example: B-spline volumes as space warps</a></li>
+    </ol>
+  </nav>
+
+<!-- ═══════════════════════════════════ 2 ═══ -->
+  <section id="1d">
+    <h2><span class="section-num">1</span> 1D B-splines in detail</h2>
+
+    <p>If you are reading this blog, you must be familiar with B-splines, mostly in context of curve fitting. This section is a quick refresher and a buildup for extending it to 3D.</p>
+
+    <!-- <div class="meme info">
+      <div class="meme-label">ℹ️ Why not just fit a polynomial?</div>
+      The obvious alternative is polynomial curve fitting: give it N data points, get a degree-(N-1) polynomial that passes through all of them exactly. The problem is <strong>Runge's phenomenon</strong>: as you add more points the polynomial starts wildly oscillating between them, especially near the edges. B-splines sidestep this entirely by using many small low-degree pieces stitched smoothly together, and by only <em>approximating</em> the control points rather than being forced through them. The payoff: smoothness and local control at any scale.
+    </div> -->
+
+    <p>The goal is to draw a smooth curve through space that you can control locally.</p>
+    <p>You have a set of handles (control points). Move one handle and a nearby section of the curve follows. The rest of the curve stays put. The curve is always smooth, always well-behaved, no matter how many handles you have.</p>
+
+    <h3>Control points, the handles</h3>
+    <p>Let's start simple. Place 4 points anywhere in 2D space and call them P₁, P₂, P₃, P₄. Remember, these are <em>not</em> points on the curve. They don't sit on it. They <em>pull</em> it, like magnets. The curve bends toward them but never has to touch them.</p>
+
+    <div class="meme lightbulb" style="display:flex; align-items:center; gap:24px;">
+      <div style="flex:1;">
+        <div class="meme-label">💡 The puppet analogy</div>
+        Imagine control points as the strings of a puppet. Pull string #2 upward and the nearby part of the body lifts but the feet stay put. The influence is local, smooth, and it fades with distance. That's exactly how control points work.
+      </div>
+      <img src="../assets/puppet.png" alt="Puppet meme" style="flex-shrink:0; width:160px; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,0.12);">
+    </div>
+
+    <p>Now we need a way to talk about position along the curve. We introduce a parameter <strong>u ∈ [0, 1]</strong> and think of it as a dial. At u = 0 you're at the start of the curve. At u = 1 you're at the end. Anywhere in between, you're somewhere along it.</p>
+
+    <p>So what is the curve point at a given u? It's just a <strong>weighted average of the control points</strong>:</p>
+
+    <div class="eq">
+      <span class="highlight">curve(u) = N₁(u)·P₁ + N₂(u)·P₂ + N₃(u)·P₃ + N₄(u)·P₄</span>
+      <span class="eq-label">The basis functions Nᵢ(u) decide how much each control point contributes at position u</span>
+    </div>
+
+<h3>Basis functions</h3>
+
+    <p>So we have the formula <code>curve(u) = N₁(u)·P₁ + N₂(u)·P₂ + N₃(u)·P₃</code>.</p>
+
+    <p>Each Nᵢ(u) is a smooth bump centered at control point i. It peaks near its control point's region, fades to zero as you move away, and is zero outside its local territory. If a basis function is zero at u, that control point has no say in where the curve goes at u.</p>
+
+    <p>For degree 2 with 3 control points, the basis functions turn out to be the <strong>binomial expansion</strong> of ((1−u) + u)²:</p>
+
+    <div class="eq">
+      <span class="highlight">N₁(u) = (1−u)²&nbsp;&nbsp;&nbsp;&nbsp;N₂(u) = 2u(1−u)&nbsp;&nbsp;&nbsp;&nbsp;N₃(u) = u²</span>
+      <span class="eq-label">These are Bernstein polynomials of degree 2. They always sum to 1, guaranteeing a true weighted average.</span>
+    </div>
+
+    <!-- Interactive 1D demo -->
+    <div class="demo-box">
+      <div class="demo-title">Interactive — drag the u slider and watch the weights change</div>
+      <canvas id="c1d" height="200"></canvas>
+      <div class="demo-controls">
+        <label>u position</label>
+        <input type="range" id="sl-u" min="0" max="100" value="50" step="1">
+        <span id="out-u">0.50</span>
+      </div>
+      <div class="weight-bars">
+        <div class="weight-bar-wrap">
+          <div class="weight-bar-label">N₁(u)</div>
+          <div class="weight-bar-track"><div class="weight-bar-fill" id="wb1" style="height:25%"></div></div>
+          <div class="weight-bar-val" id="wv1">0.25</div>
+        </div>
+        <div class="weight-bar-wrap">
+          <div class="weight-bar-label">N₂(u)</div>
+          <div class="weight-bar-track"><div class="weight-bar-fill" id="wb2" style="height:50%"></div></div>
+          <div class="weight-bar-val" id="wv2">0.50</div>
+        </div>
+        <div class="weight-bar-wrap">
+          <div class="weight-bar-label">N₃(u)</div>
+          <div class="weight-bar-track"><div class="weight-bar-fill" id="wb3" style="height:25%"></div></div>
+          <div class="weight-bar-val" id="wv3">0.25</div>
+        </div>
+        <div class="weight-bar-wrap">
+          <div class="weight-bar-label">sum</div>
+          <div class="weight-bar-track"><div class="weight-bar-fill" id="wb4" style="height:100%; background: #1e7c4a;"></div></div>
+          <div class="weight-bar-val" style="color:#1e7c4a" id="wv4">1.00</div>
+        </div>
+      </div>
+      <p style="font-size:13px; color:var(--muted); font-style:italic; text-align:center; margin-top:16px; padding-top:12px; border-top:1px solid var(--border);">
+        At u = 0, N₁ = 1 and everything else is zero — the curve starts exactly at P₁. At u = 1, N₃ = 1 — it ends at P₃. At u = 0.5, N₂ peaks and dominates — the curve is pulled hardest toward P₂. The curve always gravitates toward whichever control point owns that region of parameter space.
+      </p>
+    </div>
+        <p>This is the core mechanic. The basis functions are just a smooth handoff of influence from one control point to the next as u travels from 0 to 1.</p>
+
+    <h3>The knot vector</h3>
+
+<p>Here is the problem. Three control points gave us one smooth arc. But what if you want a long, complex curve with many control points? You could fit one giant high-degree polynomial through all of them, but that leads to Runge's phenomenon: wild oscillations and numerical instability.</p>
+
+    <p>The B-spline solution is much smarter. Instead of one big polynomial, stitch together, for example, many small cubic pieces, each controlled by just 4 nearby points. The <strong>knot vector</strong> is simply the schedule that tells you where each piece starts and ends along the u axis.</p>
+
+    <p>For 6 control points, degree 3, a uniform knot vector looks like:</p>
+
+    <div class="eq">
+      <span class="highlight">knots = [0, 0, 0, 0, 0.33, 0.66, 1, 1, 1, 1]</span>
+      <span class="eq-label">Length = n_control_points + degree + 1 = 6 + 3 + 1 = 10. Always.</span>
+    </div>
+
+<p>Let's read this out loud. The four 0s at the start and four 1s at the end are repeated on purpose. They pin the curve so it starts exactly at P₁ and ends exactly at P₆. Without them the curve would float away from its endpoints.</p>
+
+    <p>The interior values 0.33 and 0.66 are just mile markers on the u axis. They are not control points. They have no position in space. They simply say: segment 1 runs from u = 0 to u = 0.33, segment 2 from 0.33 to 0.66, segment 3 from 0.66 to 1. That is all a knot vector does.</p>
+
+    <div class="knot-viz">
+      <span class="knot-val">[</span>
+      <span class="knot-seg inactive">0</span>
+      <span class="knot-seg inactive">0</span>
+      <span class="knot-seg inactive">0</span>
+      <span class="knot-seg inactive">0</span>
+      <span class="knot-seg active">0.33 → seg boundary</span>
+      <span class="knot-seg active">0.66 → seg boundary</span>
+      <span class="knot-seg inactive">1</span>
+      <span class="knot-seg inactive">1</span>
+      <span class="knot-seg inactive">1</span>
+      <span class="knot-seg inactive">1</span>
+      <span class="knot-val">]</span>
+    </div>
+
+    <p>Here is a concrete example. Say you are evaluating the curve at u = 0.4.
+       You look at the knot vector and ask: which span does 0.4 fall in? It falls between 0.33 and 0.66, so you are in segment 2. 
+       Now, which control points govern segment 2? The rule is simple: for degree 3, each segment uses exactly 4 consecutive control points starting at the span index minus the degree.
+        Segment 2 is the second active span, which sits at index 4 in the knot vector (counting from 0). So the starting control point is index 4 minus 3 = 1, giving us P₂, P₃, P₄, P₅ (1-indexed). 
+        That is the only information the knot vector gives you - which four control points to use.</p>
+
+    <div class="aside">
+      <strong>Why 0.33 and not some other value?</strong> It's just 1/3 equally dividing the [0,1] range into 3 segments. You could use any value.
+       Non-uniform knot spacing lets you put more detail in certain regions.
+    </div>
+
+<h3>Where do the weights come from?</h3>
+
+    <p>So far we have used the basis functions N₁(u), N₂(u), N₃(u) as if they just exist. For 3 control points and degree 2, we could write them out as closed-form polynomials. But what happens when you have 6, 10, or 100 control points? You need a general algorithm that computes the right weights for any u. That algorithm is the Cox-de Boor recursion.</p>
+
+    <p>The idea is to build the smooth bump functions from scratch, starting from something extremely simple and refining it step by step. Here is how it works.</p>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+        <div class="pipe-content">
+          <div class="pipe-title">Degree 0: box functions</div>
+          <div class="pipe-desc">Ask one question for each span in the knot vector: does u fall in this span? If yes, the function is 1. If no, it is 0. At any given u, exactly one box fires. This is the seed of the whole recursion.</div>
+          <div class="pipe-eq">N[i,0] = 1 if knots[i] ≤ u &lt; knots[i+1], else 0</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+        <div class="pipe-content">
+          <div class="pipe-title">Degree 1: blend neighboring boxes</div>
+          <div class="pipe-desc">Take each pair of neighboring degree-0 boxes and blend them together using linear interpolation.
+             The blend weight α is how far u has travelled into the current span. The result is a tent function. It ramps up and then ramps back down. Two control points now have non-zero influence instead of one.</div>
+          <div class="pipe-eq">N[i,1] = α·N[i,0] + (1−α)·N[i+1,0]</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+        <div class="pipe-content">
+          <div class="pipe-title">Degree 2: blend the tent functions</div>
+          <div class="pipe-desc">Do the same blending again, this time on the degree-1 tent functions. The result is a smooth quadratic bump. Each iteration spreads the influence one more control point wider and makes the function one degree smoother. For degree 2, three control points now have non-zero influence at any u.</div>
+          <div class="pipe-eq">N[i,2] = β·N[i,1] + (1−β)·N[i+1,1]</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-connector"><div class="pipe-dot"></div></div>
+        <div class="pipe-content">
+          <div class="pipe-title">Read off the final weights</div>
+          <div class="pipe-desc">After d rounds of blending you have your degree-d basis function weights, one per control point. They always sum to 1, so the curve point is always a true weighted average. No control point can ever pull the curve to infinity.</div>
+          <div class="pipe-eq">weights = N[:n_ctrl, degree]</div>
+        </div>
+      </div>
+    </div>
+
+    <p>The key thing to notice is that each extra round of blending does two things simultaneously: it spreads influence to one more neighbouring control point, and it smooths the function by one degree. That is why degree and local support are directly linked. A degree-2 spline always has at most 3 active control points at any u. A degree-3 spline always has at most 4. You cannot get more smoothness without also getting slightly wider influence.</p>
+
+
+    <h3>Putting it all together: computing the curve</h3>
+
+    <div style="text-align:center; margin: 20px 0;">
+      <img src="../assets/put_it_together.png" alt="Putting it all together meme" style="max-width:320px; width:100%; border-radius:6px; box-shadow:0 4px 16px rgba(0,0,0,0.12);">
+    </div>
+
+    <p>Given a query u, the full algorithm is four lines of logic:</p>
+
+    <div class="code-tag">Python</div>
+    <pre><span class="cm"># Given: u ∈ [0,1], control_points list of (x,y) positions</span>
+
+<span class="cm"># 1. Compute basis weights via Cox-de Boor</span>
+<span class="var">weights</span> = <span class="fn">bspline_basis</span>(<span class="var">u</span>, n_ctrl=<span class="num-c">4</span>, degree=<span class="num-c">2</span>)  <span class="cm"># shape (4,)</span>
+
+<span class="cm"># 2. Weighted average of control points</span>
+<span class="var">curve_point</span> = <span class="fn">sum</span>(<span class="var">w</span> * <span class="var">P</span> <span class="kw">for</span> <span class="var">w</span>, <span class="var">P</span> <span class="kw">in</span> <span class="fn">zip</span>(<span class="var">weights</span>, <span class="var">control_points</span>))
+
+<span class="cm"># 3. Repeat for many u values → the full curve</span>
+<span class="var">curve</span> = [<span class="fn">compute</span>(<span class="var">u</span>) <span class="kw">for</span> <span class="var">u</span> <span class="kw">in</span> <span class="fn">np.linspace</span>(<span class="num-c">0</span>, <span class="num-c">1</span>, <span class="num-c">200</span>)]</pre>
+
+
+    <div class="meme check">
+      <div class="meme-label">✅ What you now understand about 1D B-splines</div>
+      Control points are handles in space. Knot vector schedules the segment boundaries. Basis functions (computed via Cox-de Boor) distribute local influence. Curve = weighted average of control points. Weights always sum to 1. Moving one point changes only a nearby region.
+    </div>
+  </section>
+
+  <div class="section-divider">· · ·</div>
+
+  <!-- ═══════════════════════════════════ 3 ═══ -->
+  <section id="3d">
+    <h2><span class="section-num">2</span> Extending to 3D</h2>
+
+    <p>Going from 1D to 3D sounds intimidating. It isn't. The jump is applying the exact same 1D operation <strong>three times independently</strong>, once per axis.</p>
+
+    <h3>Wait. What does a 3D spline even mean?</h3>
+
+    <div style="text-align:center; margin: 16px 0;">
+      <img src="../assets/wait.png" alt="Wait meme" style="max-width:280px; width:100%; border-radius:6px; box-shadow:0 4px 16px rgba(0,0,0,0.12);">
+    </div>
+
+    <p>Before touching the math, let's make sure the goal is clear. Each dimension of spline buys you one extra dimension of output. The pattern is consistent:</p>
+
+    <table class="compare-table">
+      <thead><tr><th>Spline type</th><th>Input parameters</th><th>What you get</th><th>Analogy</th></tr></thead>
+      <tbody>
+        <tr><td>1D spline</td><td>u</td><td>A curve through space</td><td>A wire bent by handles</td></tr>
+        <tr><td>2D spline</td><td>u, v</td><td>A curved surface (shell)</td><td>A rubber sheet stretched over a frame</td></tr>
+        <tr><td>3D spline (volume)</td><td>u, v, w</td><td>A warp of solid space</td><td>A rubber cube you can squeeze and stretch</td></tr>
+      </tbody>
+    </table>
+
+    <div class="meme brain">
+      <div class="meme-label">🧠 The key shift at 3D</div>
+      <p style="margin-bottom:10px;">In 1D and 2D, the spline <em>is</em> the shape you care about. You're fitting a curve or a surface to data.</p>
+      <p style="margin-bottom:10px;">In 3D, the spline <em>wraps around</em> a shape you already have. You're not fitting a 3D solid. You're defining a smooth warp of the entire space inside the cage, and your mesh rides along inside it.</p>
+      <p style="margin:0;">Think of it like this: a 1D spline tells you where a point on a wire ends up. A 3D spline tells you where <strong>every point inside a cube</strong> ends up after deformation.</p>
+    </div>
+
+    <div class="analogy-cols">
+      <div class="analogy-col left">
+        <div class="analogy-col-title">🧵 2D spline is fitting a surface</div>
+        <p>You have scattered 3D points on a bumpy surface (say, a hillside). A 2D spline fits a smooth curved shell through or near those points. The output is a 2D manifold embedded in 3D space. You care about the shell itself.</p>
+      </div>
+      <div class="analogy-col right">
+        <div class="analogy-col-title">📦 3D spline is warping a volume</div>
+        <p>You have a mesh sitting inside a cage. A 3D spline defines how the entire interior of that cage deforms. The output is a new position for every point inside the cage. You care about what happens to the mesh inside it.</p>
+      </div>
+    </div>
+
+    <div class="demo-box" id="demo2d-box">
+      <div class="demo-title">Interactive — drag the red control points to reshape the curve</div>
+      <div style="display:flex; gap:16px; justify-content:center; margin-bottom:10px; flex-wrap:wrap;">
+        <span style="font-size:12px; font-weight:700; background:var(--red-bg); color:var(--accent); border:1.5px solid #f5c4b4; border-radius:100px; padding:3px 12px;">6 control points</span>
+        <span style="font-size:12px; font-weight:700; background:var(--blue-bg); color:var(--blue); border:1.5px solid #b4d0f5; border-radius:100px; padding:3px 12px;">degree 3</span>
+      </div>
+      <canvas id="c2d" height="340"></canvas>
+      <p style="font-size:13px; color:var(--muted); font-style:italic; text-align:center; margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+        The dashed polygon connects control points. The blue curve is pulled toward them without touching them. Drag any red dot to see the curve reshape instantly.
+      </p>
+    </div>
+
+    <script>
+    (function() {
+      const canvas = document.getElementById('c2d');
+      const ctx    = canvas.getContext('2d');
+      const DEGREE = 3;
+      const N_SAMPLES = 200;
+      const POINT_RADIUS = 8;
+      const COLORS = { curve: '#2060c0', polygon: '#aaaaaa', point: '#e03030', label: '#c00000' };
+
+      // Control points in [0,1] normalised space — converted to canvas px on draw
+      let cps = [
+        [0.10, 0.50], [0.25, 0.15], [0.45, 0.80],
+        [0.55, 0.20], [0.75, 0.85], [0.90, 0.50],
+      ];
+
+      let dragging = null;
+
+      // ── resize canvas ──────────────────────────────────────────────────────
+      function resize() {
+        const dpr = window.devicePixelRatio || 1;
+        const W   = canvas.parentElement.getBoundingClientRect().width - 48;
+        const H   = 340;
+        canvas.style.width  = W + 'px';
+        canvas.style.height = H + 'px';
+        canvas.width  = W * dpr;
+        canvas.height = H * dpr;
+        draw();
+      }
+
+      function toCanvasX(nx) { return nx * (canvas.width  / (window.devicePixelRatio||1)); }
+      function toCanvasY(ny) { return ny * (canvas.height / (window.devicePixelRatio||1)); }
+      function toNormX(cx)   { return cx / (canvas.width  / (window.devicePixelRatio||1)); }
+      function toNormY(cy)   { return cy / (canvas.height / (window.devicePixelRatio||1)); }
+
+      // ── Cox-de Boor basis ──────────────────────────────────────────────────
+      function bsplineBasis(u, nCtrl, degree) {
+        const nKnots = nCtrl + degree + 1;
+        const knots  = new Array(nKnots).fill(0);
+        const nInt   = nKnots - 2 * (degree + 1);
+        for (let k = 0; k < nInt; k++) knots[degree + 1 + k] = (k + 1) / (nInt + 1);
+        for (let k = degree; k >= 0; k--) { knots[nKnots - 1 - k] = 1.0; }
+        u = Math.min(Math.max(u, 0), 1 - 1e-10);
+
+        const N = Array.from({length: nCtrl + degree}, () => new Array(degree + 1).fill(0));
+        for (let i = 0; i < nCtrl + degree - 1; i++)
+          N[i][0] = (knots[i] <= u && u < knots[i+1]) ? 1 : 0;
+        for (let d = 1; d <= degree; d++) {
+          for (let i = 0; i < nCtrl + degree - d; i++) {
+            let l = 0, r = 0;
+            if (knots[i+d]   - knots[i]   > 1e-10) l = (u - knots[i])         / (knots[i+d]   - knots[i])   * N[i][d-1];
+            if (knots[i+d+1] - knots[i+1] > 1e-10) r = (knots[i+d+1] - u)     / (knots[i+d+1] - knots[i+1]) * N[i+1][d-1];
+            N[i][d] = l + r;
+          }
+        }
+        return N.slice(0, nCtrl).map(row => row[degree]);
+      }
+
+      function computeCurve() {
+        const n = cps.length;
+        const pts = [];
+        for (let s = 0; s <= N_SAMPLES; s++) {
+          const u = s / N_SAMPLES;
+          const w = bsplineBasis(u, n, DEGREE);
+          let x = 0, y = 0;
+          for (let i = 0; i < n; i++) { x += w[i] * cps[i][0]; y += w[i] * cps[i][1]; }
+          pts.push([x, y]);
+        }
+        return pts;
+      }
+
+      // ── draw ───────────────────────────────────────────────────────────────
+      function draw() {
+        const dpr = window.devicePixelRatio || 1;
+        const W   = canvas.width  / dpr;
+        const H   = canvas.height / dpr;
+        ctx.save();
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, W, H);
+
+        // grid
+        ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+        ctx.lineWidth = 1;
+        for (let i = 1; i < 10; i++) {
+          ctx.beginPath(); ctx.moveTo(i*W/10, 0); ctx.lineTo(i*W/10, H); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0, i*H/10); ctx.lineTo(W, i*H/10); ctx.stroke();
+        }
+
+        // control polygon
+        ctx.beginPath();
+        ctx.setLineDash([6, 4]);
+        ctx.strokeStyle = COLORS.polygon;
+        ctx.lineWidth = 1.4;
+        cps.forEach(([nx, ny], i) => {
+          i === 0 ? ctx.moveTo(nx*W, ny*H) : ctx.lineTo(nx*W, ny*H);
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // curve
+        const curve = computeCurve();
+        ctx.beginPath();
+        ctx.strokeStyle = COLORS.curve;
+        ctx.lineWidth = 2.5;
+        curve.forEach(([nx, ny], i) => {
+          i === 0 ? ctx.moveTo(nx*W, ny*H) : ctx.lineTo(nx*W, ny*H);
+        });
+        ctx.stroke();
+
+        // control points + labels
+        cps.forEach(([nx, ny], i) => {
+          ctx.beginPath();
+          ctx.arc(nx*W, ny*H, POINT_RADIUS, 0, Math.PI*2);
+          ctx.fillStyle = COLORS.point;
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.fillStyle = COLORS.label;
+          ctx.font = 'bold 12px Nunito, sans-serif';
+          ctx.fillText('P' + i, nx*W + 11, ny*H + 4);
+        });
+
+        ctx.restore();
+      }
+
+      // ── pointer helpers ────────────────────────────────────────────────────
+      function getCanvasPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const src  = e.touches ? e.touches[0] : e;
+        return [(src.clientX - rect.left), (src.clientY - rect.top)];
+      }
+
+      function findNearest(cx, cy) {
+        const dpr = window.devicePixelRatio || 1;
+        const W = canvas.width / dpr, H = canvas.height / dpr;
+        let best = null, bestD = POINT_RADIUS * 2;
+        cps.forEach(([nx, ny], i) => {
+          const d = Math.hypot(nx*W - cx, ny*H - cy);
+          if (d < bestD) { bestD = d; best = i; }
+        });
+        return best;
+      }
+
+      function clamp(v) { return Math.min(Math.max(v, 0.01), 0.99); }
+
+      canvas.addEventListener('mousedown', e => {
+        const [cx, cy] = getCanvasPos(e);
+        dragging = findNearest(cx, cy);
+      });
+      canvas.addEventListener('mousemove', e => {
+        if (dragging === null) return;
+        const dpr = window.devicePixelRatio || 1;
+        const [cx, cy] = getCanvasPos(e);
+        cps[dragging] = [clamp(cx / (canvas.width/dpr)), clamp(cy / (canvas.height/dpr))];
+        draw();
+      });
+      canvas.addEventListener('mouseup',   () => { dragging = null; });
+      canvas.addEventListener('mouseleave',() => { dragging = null; });
+
+      canvas.addEventListener('touchstart', e => {
+        e.preventDefault();
+        const [cx, cy] = getCanvasPos(e);
+        dragging = findNearest(cx, cy);
+      }, {passive: false});
+      canvas.addEventListener('touchmove', e => {
+        e.preventDefault();
+        if (dragging === null) return;
+        const dpr = window.devicePixelRatio || 1;
+        const [cx, cy] = getCanvasPos(e);
+        cps[dragging] = [clamp(cx / (canvas.width/dpr)), clamp(cy / (canvas.height/dpr))];
+        draw();
+      }, {passive: false});
+      canvas.addEventListener('touchend', () => { dragging = null; });
+
+      window.addEventListener('resize', resize);
+      resize();
+    })();
+    </script>
+
+    <div class="aside">
+      <strong>A concrete example.</strong> Imagine a clay ball inside a glass box. A 2D spline would let you describe the surface of the clay. 
+      A 3D spline lets you grab the glass walls and squeeze and the clay deforms accordingly, because every point inside the glass follows the warp. The glass is the cage. The clay is your mesh.
+    </div>
+
+<h3>First, let's go to 2D: a surface</h3>
+
+    <p>Before jumping to 3D volumes, let's do 2D first. The goal here is different from 1D. In 1D we drew a curve through space. In 2D we want to fit a <strong>curved surface to a set of 3D points</strong>. Think of a bumpy hillside, or a car hood, or a face. You have a cloud of 3D points and you want a smooth sheet that approximates them.</p>
+
+    <p>The way B-splines handle this is elegant. Instead of one row of control points, you now have a <strong>grid</strong> of control points indexed by (i, j). And instead of one parameter u, you now have two: u and v. Together (u, v) is your address on the surface, just like latitude and longitude on a globe.</p>
+
+    <p>So how do you evaluate the surface at a given (u, v)? You just apply the 1D B-spline twice, once per axis:</p>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+        <div class="pipe-content">
+          <div class="pipe-title">Step 1: fix v and apply 1D B-spline along each row</div>
+          <div class="pipe-desc">Treat v as fixed. For each row i of the control point grid, run the 1D B-spline along that row using the v weights Nⱼ(v). Each row of 3D control points collapses into a single 3D intermediate point Rᵢ. You now have one intermediate point per row.</div>
+          <div class="pipe-eq">Rᵢ = Σⱼ Nⱼ(v) · P[i,j]</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+        <div class="pipe-content">
+          <div class="pipe-title">Step 2: apply 1D B-spline along the resulting column</div>
+          <div class="pipe-desc">Now you have a column of intermediate points R₁, R₂, R₃, R₄ — each one a 3D position. Run the 1D B-spline along that column using the u weights Nᵢ(u). One final 3D point comes out. That is your surface point at (u, v).</div>
+          <div class="pipe-eq">surface(u,v) = Σᵢ Nᵢ(u) · Rᵢ</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-connector"><div class="pipe-dot"></div></div>
+        <div class="pipe-content">
+          <div class="pipe-title">Step 3: substitute and simplify</div>
+          <div class="pipe-desc">Plug the expression for Rᵢ into the second equation. The weights from both axes multiply together naturally. This is what is called the tensor product, just the consequence of applying 1D B-spline twice. Each control point P[i,j] contributes with weight Nᵢ(u)·Nⱼ(v), which is only non-zero if (u,v) is near (i,j) in both directions simultaneously. Local support now works in 2D.</div>
+          <div class="pipe-eq">surface(u,v) = Σᵢ Σⱼ Nᵢ(u)·Nⱼ(v) · P[i,j]</div>
+        </div>
+      </div>
+    </div>
+
+    <p>Notice what just happened. We did not invent anything new. We just applied the exact same 1D operation twice, once along v to collapse rows, once along u to collapse the resulting column. The 2D formula fell out automatically. That pattern is exactly what we will repeat one more time to get to 3D.</p>
+
+    <h3>Now 3D a volume</h3>
+
+    <p>Add a third parameter w and a third layer of control points. Apply 1D B-spline three times:</p>
+
+    <div class="eq">
+      <span class="highlight">volume(u,v,w) = Σᵢ Σⱼ Σₖ  Nᵢ(u) · Nⱼ(v) · Nₖ(w) · P[i,j,k]</span>
+      <span class="eq-label">Triple sum over all control point combinations. Weight of P[i,j,k] = Nᵢ(u)·Nⱼ(v)·Nₖ(w)</span>
+    </div>
+
+    <p>The key property: control point P[i,j,k] only has non-zero weight if <strong>all three</strong> axis distances are simultaneously small. If the query is far from index i along just the u-axis, the whole weight collapses to zero. This is local support in 3D.</p>
+
+    <div class="meme lightbulb">
+      <div class="meme-label">💡 The three independent questions</div>
+      Nᵢ(u): "How close is u to control point i along the x-axis?"<br>
+      Nⱼ(v): "How close is v to control point j along the y-axis?"<br>
+      Nₖ(w): "How close is w to control point k along the z-axis?"<br><br>
+      Multiply the three answers. Miss on any one → zero influence. Hit all three → strong influence.
+    </div>
+
+    <div class="analogy-cols">
+      <div class="analogy-col left">
+        <div class="analogy-col-title">🎛️ 1D: row of handles</div>
+        <p>4 control points. One parameter u. At any u, at most 3 control points contribute (for degree 2).</p>
+      </div>
+      <div class="analogy-col right">
+        <div class="analogy-col-title">📦 3D: cube of handles</div>
+        <p>4×4×4 = 64 control points. Three parameters u,v,w. At any (u,v,w), at most 3×3×3 = 27 control points contribute.</p>
+      </div>
+    </div>
+
+    <div class="hot-take">
+      <span class="ht-icon">📐</span>
+      The 3D formula is not harder than 1D. It's literally the same formula applied three times and multiplied together. The complexity is in the bookkeeping, not the math.
+    </div>
+  </section>
+
+  <div class="section-divider">· · ·</div>
+
+  <!-- ═══════════════════════════════════ 4 ═══ -->
+  <section id="sphere">
+    <h2><span class="section-num">3</span> The sphere example</h2>
+
+    <div style="text-align:center; margin: 20px 0;">
+      <img src="../assets/repeat_after_me.png" alt="Repeat after me meme" style="max-width:340px; width:100%; border-radius:6px; box-shadow:0 4px 16px rgba(0,0,0,0.12);">
+    </div>
+
+    <div class="meme fire">
+      <div class="meme-label">🔥 The B-spline volume is a warp function, not a shape</div>
+      It answers one question: "If a point starts at parameter coordinate (u,v,w), where does it end up after the warp?" It's a mapping from one 3D space to another. Your mesh vertices ride along inside it.
+    </div>
+
+    <h3>The rubber cube analogy</h3>
+
+    <p>Imagine your sphere mesh sitting inside a <strong>rubber cube</strong>. The 4×4×4 lattice of control points is a cage of 64 handles on the surface of that rubber cube. When you move handles, the rubber cube stretches and everything inside it (including the sphere vertices) moves along with it.</p>
+
+    <p>The B-spline volume is the mathematical description of how the rubber deforms. For each sphere vertex:</p>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+        <div class="pipe-content">
+          <div class="pipe-title">Assign (u,v,w) to each vertex once, forever</div>
+          <div class="pipe-desc">Normalize each vertex's xyz position into [0,1]³ using the bounding box. This is the vertex's permanent address inside the cage.</div>
+          <div class="pipe-eq">u = (x − x_min) / (x_max − x_min)  &nbsp; (same for v,w)</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+        <div class="pipe-content">
+          <div class="pipe-title">Move control point handles to deform the cage</div>
+          <div class="pipe-desc">Push the top layer up → top of sphere stretches. Push left layer inward → sphere squishes. The (u,v,w) addresses never change only the control point positions do.</div>
+          <div class="pipe-eq">P[i,j,k] += displacement</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-connector"><div class="pipe-dot"></div></div>
+        <div class="pipe-content">
+          <div class="pipe-title">Evaluate volume to get new vertex positions</div>
+          <div class="pipe-desc">For each vertex, query the B-spline volume at its fixed (u,v,w). The weighted sum of nearby control points gives the new xyz position.</div>
+          <div class="pipe-eq">new_xyz = Σᵢⱼₖ Nᵢ(u)·Nⱼ(v)·Nₖ(w) · P[i,j,k]</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="meme check">
+      <div class="meme-label">✅ What changes vs what stays fixed</div>
+      <strong>Fixed forever:</strong> the (u,v,w) parameter coordinates of each vertex, the 4×4×4 grid structure, the basis function math.<br><br>
+      <strong>Variable:</strong> the (x,y,z) position of each control point in 3D space this is what the encoder predicts per-person in CUBE.
+    </div>
+
+    <!-- ── Sphere interactive demo ── -->
+    <div class="demo-box" id="sphere3d-box" style="margin:32px 0;">
+      <div class="demo-title">Interactive — slide to deform · drag canvas to rotate</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px;flex-wrap:wrap;">
+        <span style="font-size:12px;font-weight:700;background:var(--blue-bg);color:var(--blue);border:1.5px solid #b4d0f5;border-radius:100px;padding:3px 12px;">4×4×4 cage</span>
+        <span style="font-size:12px;font-weight:700;background:var(--red-bg);color:var(--accent);border:1.5px solid #f5c4b4;border-radius:100px;padding:3px 12px;">blue = original · orange = deformed</span>
+      </div>
+      <canvas id="c3d" height="360"></canvas>
+
+      <!-- Sliders -->
+      <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
+        <!-- X planes -->
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#e03030;width:56px;flex-shrink:0;">X planes</span>
+          <div style="display:flex;gap:8px;flex:1;flex-wrap:wrap;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex:1;min-width:100px;">P0 <input class="sl3d" id="sl3d-x0" type="range" min="-0.8" max="0.8" step="0.01" value="0" style="flex:1;accent-color:#e03030;"></label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex:1;min-width:100px;">P1 <input class="sl3d" id="sl3d-x1" type="range" min="-0.8" max="0.8" step="0.01" value="0" style="flex:1;accent-color:#e03030;"></label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex:1;min-width:100px;">P2 <input class="sl3d" id="sl3d-x2" type="range" min="-0.8" max="0.8" step="0.01" value="0" style="flex:1;accent-color:#e03030;"></label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex:1;min-width:100px;">P3 <input class="sl3d" id="sl3d-x3" type="range" min="-0.8" max="0.8" step="0.01" value="0" style="flex:1;accent-color:#e03030;"></label>
+          </div>
+        </div>
+        <!-- Y planes -->
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#2060c0;width:56px;flex-shrink:0;">Y planes</span>
+          <div style="display:flex;gap:8px;flex:1;flex-wrap:wrap;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex:1;min-width:100px;">P0 <input class="sl3d" id="sl3d-y0" type="range" min="-0.8" max="0.8" step="0.01" value="0" style="flex:1;accent-color:#2060c0;"></label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex:1;min-width:100px;">P1 <input class="sl3d" id="sl3d-y1" type="range" min="-0.8" max="0.8" step="0.01" value="0" style="flex:1;accent-color:#2060c0;"></label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex:1;min-width:100px;">P2 <input class="sl3d" id="sl3d-y2" type="range" min="-0.8" max="0.8" step="0.01" value="0" style="flex:1;accent-color:#2060c0;"></label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex:1;min-width:100px;">P3 <input class="sl3d" id="sl3d-y3" type="range" min="-0.8" max="0.8" step="0.01" value="0" style="flex:1;accent-color:#2060c0;"></label>
+          </div>
+        </div>
+        <!-- Z planes -->
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#1e7c4a;width:56px;flex-shrink:0;">Z planes</span>
+          <div style="display:flex;gap:8px;flex:1;flex-wrap:wrap;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex:1;min-width:100px;">P0 <input class="sl3d" id="sl3d-z0" type="range" min="-0.8" max="0.8" step="0.01" value="0" style="flex:1;accent-color:#1e7c4a;"></label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex:1;min-width:100px;">P1 <input class="sl3d" id="sl3d-z1" type="range" min="-0.8" max="0.8" step="0.01" value="0" style="flex:1;accent-color:#1e7c4a;"></label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex:1;min-width:100px;">P2 <input class="sl3d" id="sl3d-z2" type="range" min="-0.8" max="0.8" step="0.01" value="0" style="flex:1;accent-color:#1e7c4a;"></label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex:1;min-width:100px;">P3 <input class="sl3d" id="sl3d-z3" type="range" min="-0.8" max="0.8" step="0.01" value="0" style="flex:1;accent-color:#1e7c4a;"></label>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:12px;">
+        <button id="reset3d" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:6px;padding:6px 20px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text);">Reset</button>
+      </div>
+      <p style="font-size:13px;color:var(--muted);font-style:italic;text-align:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+        Each slider shifts an entire plane of control points along its axis. Moving X-plane 0 and X-plane 3 apart stretches the sphere. Mixing axes creates squash-and-stretch effects.
+      </p>
+    </div>
+
+    <script>
+    (function(){
+      const canvas = document.getElementById('c3d');
+      const ctx    = canvas.getContext('2d');
+      const N_CTRL = 4, DEG = 2, N3 = N_CTRL**3;
+      const N_LAT = 12, N_LON = 12;
+
+      // ── sphere mesh ───────────────────────────────────────────────────────
+      const baseVerts = [], faces = [];
+      for (let i=0; i<N_LON; i++) {
+        const theta = 2*Math.PI * i / N_LON;
+        for (let j=0; j<N_LAT; j++) {
+          const phi = Math.PI * j / (N_LAT-1);
+          baseVerts.push([Math.sin(phi)*Math.cos(theta), Math.sin(phi)*Math.sin(theta), Math.cos(phi)]);
+        }
+      }
+      // wrap i with modulo to close the seam
+      for (let i=0; i<N_LON; i++) for (let j=0; j<N_LAT-1; j++) {
+        const ni=(i+1)%N_LON;
+        const p1=i*N_LAT+j, p2=i*N_LAT+j+1, p3=ni*N_LAT+j, p4=ni*N_LAT+j+1;
+        faces.push([p1,p2,p3],[p2,p4,p3]);
+      }
+
+      // ── B-spline basis (Cox-de Boor) ──────────────────────────────────────
+      function basis(u, nC, deg) {
+        const nK = nC+deg+1, k = new Array(nK).fill(0);
+        const nI = nK-2*(deg+1);
+        for (let i=0; i<nI; i++) k[deg+1+i]=(i+1)/(nI+1);
+        for (let i=0; i<=deg; i++) k[nK-1-i]=1;
+        u = Math.min(Math.max(u,0),1-1e-10);
+        const N = Array.from({length:nC+deg},()=>new Array(deg+1).fill(0));
+        for (let i=0;i<nC+deg-1;i++) N[i][0]=(k[i]<=u&&u<k[i+1])?1:0;
+        for (let d=1;d<=deg;d++) for (let i=0;i<nC+deg-d;i++) {
+          let l=0,r=0;
+          if(k[i+d]-k[i]>1e-10)   l=(u-k[i])/(k[i+d]-k[i])*N[i][d-1];
+          if(k[i+d+1]-k[i+1]>1e-10) r=(k[i+d+1]-u)/(k[i+d+1]-k[i+1])*N[i+1][d-1];
+          N[i][d]=l+r;
+        }
+        return N.slice(0,nC).map(r=>r[deg]);
+      }
+
+      // ── bounding box + UVW + basis weights (must come before W_mat) ──────────
+      const pad=0.1;
+      const V = baseVerts.length;
+      const lo=[0,1,2].map(ax=>Math.min(...baseVerts.map(v=>v[ax]))-pad);
+      const hi=[0,1,2].map(ax=>Math.max(...baseVerts.map(v=>v[ax]))+pad);
+      const uvw=baseVerts.map(v=>[(v[0]-lo[0])/(hi[0]-lo[0]),(v[1]-lo[1])/(hi[1]-lo[1]),(v[2]-lo[2])/(hi[2]-lo[2])]);
+      const vWeights=uvw.map(([u,v,w])=>({wu:basis(u,N_CTRL,DEG),wv:basis(v,N_CTRL,DEG),ww:basis(w,N_CTRL,DEG)}));
+
+      // Build W_mat (V × N3) — same as Python
+      const W_mat=Array.from({length:V},(_,vi)=>{
+        const row=new Array(N3).fill(0);
+        const {wu,wv,ww}=vWeights[vi];
+        for(let i=0;i<N_CTRL;i++) for(let j=0;j<N_CTRL;j++) for(let kk=0;kk<N_CTRL;kk++)
+          row[i*N_CTRL*N_CTRL+j*N_CTRL+kk]=wu[i]*wv[j]*ww[kk];
+        return row;
+      });
+
+      // lstsq via Conjugate Gradient on (W^T W + λI)x = W^T b — numerically stable
+      function lstsq(b, lambda=1e-8){
+        const Atb=new Array(N3).fill(0);
+        for(let vi=0;vi<V;vi++) for(let i=0;i<N3;i++) Atb[i]+=W_mat[vi][i]*b[vi];
+
+        function matvec(x){
+          const out=new Array(N3).fill(0);
+          for(let vi=0;vi<V;vi++){
+            let wx=0; for(let i=0;i<N3;i++) wx+=W_mat[vi][i]*x[i];
+            for(let i=0;i<N3;i++) out[i]+=W_mat[vi][i]*wx;
+          }
+          for(let i=0;i<N3;i++) out[i]+=lambda*x[i];
+          return out;
+        }
+
+        const x=new Array(N3).fill(0);
+        const res=[...Atb], p=[...Atb];
+        let rr=res.reduce((s,v)=>s+v*v,0);
+        for(let iter=0;iter<300&&rr>1e-12;iter++){
+          const Ap=matvec(p);
+          const pAp=p.reduce((s,v,i)=>s+v*Ap[i],0);
+          if(Math.abs(pAp)<1e-14) break;
+          const alpha=rr/pAp;
+          for(let i=0;i<N3;i++){x[i]+=alpha*p[i]; res[i]-=alpha*Ap[i];}
+          const rr2=res.reduce((s,v)=>s+v*v,0);
+          const beta=rr2/rr; rr=rr2;
+          for(let i=0;i<N3;i++) p[i]=res[i]+beta*p[i];
+        }
+        return x;
+      }
+
+      const cpBase=[
+        lstsq(baseVerts.map(v=>v[0])),
+        lstsq(baseVerts.map(v=>v[1])),
+        lstsq(baseVerts.map(v=>v[2])),
+      ];
+      const cp=cpBase.map(ax=>[...ax]);
+
+      // slider deltas
+      const delta={x:[0,0,0,0],y:[0,0,0,0],z:[0,0,0,0]};
+
+      function applyDeltas(){
+        for(let idx=0;idx<N3;idx++){
+          const i=Math.floor(idx/(N_CTRL*N_CTRL)), j=Math.floor((idx%(N_CTRL*N_CTRL))/N_CTRL), kk=idx%N_CTRL;
+          cp[0][idx]=cpBase[0][idx]+delta.x[i];
+          cp[1][idx]=cpBase[1][idx]+delta.y[j];
+          cp[2][idx]=cpBase[2][idx]+delta.z[kk];
+        }
+      }
+
+      function queryVolume(){
+        return baseVerts.map((_,vi)=>{
+          const {wu,wv,ww}=vWeights[vi]; let x=0,y=0,z=0;
+          for(let i=0;i<N_CTRL;i++) for(let j=0;j<N_CTRL;j++) for(let kk=0;kk<N_CTRL;kk++){
+            const w=wu[i]*wv[j]*ww[kk], idx=i*N_CTRL*N_CTRL+j*N_CTRL+kk;
+            x+=w*cp[0][idx]; y+=w*cp[1][idx]; z+=w*cp[2][idx];
+          }
+          return [x,y,z];
+        });
+      }
+
+      // ── projection ────────────────────────────────────────────────────────
+      let rotX=0.35, rotY=-0.6;
+      function project(pts,cx,cy,sc){
+        const cX=Math.cos(rotX),sX=Math.sin(rotX),cY=Math.cos(rotY),sY=Math.sin(rotY);
+        return pts.map(([x,y,z])=>{
+          const x1=x*cY+z*sY, z1=-x*sY+z*cY;
+          const y2=y*cX-z1*sX, z2=y*sX+z1*cX;
+          const f=3.5/(3.5+z2);
+          return [cx+x1*sc*f, cy-y2*sc*f, z2];
+        });
+      }
+
+      // ── draw ──────────────────────────────────────────────────────────────
+      function draw(){
+        const dpr=window.devicePixelRatio||1;
+        const W=canvas.width/dpr, H=canvas.height/dpr;
+        ctx.save(); ctx.scale(dpr,dpr); ctx.clearRect(0,0,W,H);
+        const cx=W/2, cy=H/2, sc=Math.min(W,H)*0.3;
+
+        applyDeltas();
+        const def=queryVolume();
+        const pB=project(baseVerts,cx,cy,sc), pD=project(def,cx,cy,sc);
+
+        // Build draw list for ALL faces of both spheres, sort back-to-front (painter's algorithm)
+        // alpha=0.15 for original (matches Python), alpha=0.35 for deformed
+        const drawList = [];
+        faces.forEach(([a,b,c])=>{
+          const zB=(pB[a][2]+pB[b][2]+pB[c][2])/3;
+          drawList.push({z:zB, draw:()=>{
+            ctx.beginPath(); ctx.moveTo(pB[a][0],pB[a][1]); ctx.lineTo(pB[b][0],pB[b][1]); ctx.lineTo(pB[c][0],pB[c][1]); ctx.closePath();
+            ctx.fillStyle='rgba(70,130,180,0.15)'; ctx.fill();
+            ctx.strokeStyle='rgba(70,130,180,0.25)'; ctx.lineWidth=0.3; ctx.stroke();
+          }});
+          const zD=(pD[a][2]+pD[b][2]+pD[c][2])/3;
+          drawList.push({z:zD, draw:()=>{
+            ctx.beginPath(); ctx.moveTo(pD[a][0],pD[a][1]); ctx.lineTo(pD[b][0],pD[b][1]); ctx.lineTo(pD[c][0],pD[c][1]); ctx.closePath();
+            ctx.fillStyle='rgba(212,80,10,0.35)'; ctx.fill();
+            ctx.strokeStyle='rgba(180,60,0,0.4)'; ctx.lineWidth=0.3; ctx.stroke();
+          }});
+        });
+        drawList.sort((a,b)=>a.z-b.z);
+        drawList.forEach(({draw})=>draw());
+
+        // cage edges + control points
+        const cpXYZ=[]; for(let idx=0;idx<N3;idx++) cpXYZ.push([cp[0][idx],cp[1][idx],cp[2][idx]]);
+        const pC=project(cpXYZ,cx,cy,sc);
+        ctx.strokeStyle='rgba(200,50,50,0.35)'; ctx.lineWidth=0.8;
+        for(let i=0;i<N_CTRL;i++) for(let j=0;j<N_CTRL;j++) for(let kk=0;kk<N_CTRL;kk++){
+          const idx=i*N_CTRL*N_CTRL+j*N_CTRL+kk;
+          if(kk<N_CTRL-1){ ctx.beginPath(); ctx.moveTo(pC[idx][0],pC[idx][1]); ctx.lineTo(pC[idx+1][0],pC[idx+1][1]); ctx.stroke(); }
+          if(j<N_CTRL-1){ ctx.beginPath(); ctx.moveTo(pC[idx][0],pC[idx][1]); ctx.lineTo(pC[idx+N_CTRL][0],pC[idx+N_CTRL][1]); ctx.stroke(); }
+          if(i<N_CTRL-1){ ctx.beginPath(); ctx.moveTo(pC[idx][0],pC[idx][1]); ctx.lineTo(pC[idx+N_CTRL*N_CTRL][0],pC[idx+N_CTRL*N_CTRL][1]); ctx.stroke(); }
+        }
+        ctx.fillStyle='#e03030';
+        pC.forEach(([px,py])=>{ ctx.beginPath(); ctx.arc(px,py,2.5,0,Math.PI*2); ctx.fill(); });
+
+        ctx.restore();
+      }
+
+      // ── resize ────────────────────────────────────────────────────────────
+      function resize(){
+        const dpr=window.devicePixelRatio||1;
+        const W=Math.max(canvas.parentElement.getBoundingClientRect().width-48,200);
+        const H=360;
+        canvas.style.width=W+'px'; canvas.style.height=H+'px';
+        canvas.width=W*dpr; canvas.height=H*dpr;
+        draw();
+      }
+
+      // ── rotation drag ─────────────────────────────────────────────────────
+      let drag=false, lx=0, ly=0;
+      canvas.style.cursor='grab';
+      canvas.addEventListener('mousedown',e=>{drag=true;lx=e.clientX;ly=e.clientY;canvas.style.cursor='grabbing';});
+      canvas.addEventListener('mousemove',e=>{ if(!drag)return; rotY+=(e.clientX-lx)*0.008; rotX+=(e.clientY-ly)*0.008; lx=e.clientX;ly=e.clientY; draw(); });
+      canvas.addEventListener('mouseup',  ()=>{drag=false;canvas.style.cursor='grab';});
+      canvas.addEventListener('mouseleave',()=>{drag=false;canvas.style.cursor='grab';});
+      canvas.addEventListener('touchstart',e=>{e.preventDefault();drag=true;lx=e.touches[0].clientX;ly=e.touches[0].clientY;},{passive:false});
+      canvas.addEventListener('touchmove', e=>{e.preventDefault();if(!drag)return;rotY+=(e.touches[0].clientX-lx)*0.008;rotX+=(e.touches[0].clientY-ly)*0.008;lx=e.touches[0].clientX;ly=e.touches[0].clientY;draw();},{passive:false});
+      canvas.addEventListener('touchend',  ()=>{drag=false;});
+
+      // ── sliders ───────────────────────────────────────────────────────────
+      ['x','y','z'].forEach(ax=>{
+        for(let p=0;p<N_CTRL;p++){
+          const sl=document.getElementById(`sl3d-${ax}${p}`);
+          if(sl) sl.addEventListener('input',()=>{delta[ax][p]=parseFloat(sl.value);draw();});
+        }
+      });
+      document.getElementById('reset3d').addEventListener('click',()=>{
+        delta.x=[0,0,0,0];delta.y=[0,0,0,0];delta.z=[0,0,0,0];
+        document.querySelectorAll('.sl3d').forEach(s=>s.value=0);
+        draw();
+      });
+
+      window.addEventListener('resize',resize);
+      resize();
+    })();
+    </script>
+
+    <h3>Why cage-based, not direct vertex editing?</h3>
+
+    <p>A sphere mesh has 400 vertices. Moving all 400 by hand is tedious, error-prone, and produces no smoothness guarantees. The B-spline cage has only 64 control points and moving any one of them smoothly and automatically propagates to the right subset of nearby vertices, with mathematically guaranteed continuity.</p>
+
+    <table class="compare-table">
+      <thead><tr><th></th><th>Direct vertex editing</th><th>B-spline cage</th></tr></thead>
+      <tbody>
+        <tr><td>Handles to move</td><td>400 (one per vertex)</td><td>64 (4×4×4 cage)</td></tr>
+        <tr><td>Smoothness</td><td>Not guaranteed</td><td>Guaranteed by math</td></tr>
+        <tr><td>Local control</td><td>Yes but tedious</td><td>Yes and automatic</td></tr>
+        <tr><td>Different shapes</td><td>Completely different vertex lists</td><td>Just different control point positions</td></tr>
+      </tbody>
+    </table>
+
+
+    
+
+    <div class="aside">
+      <strong>This is exactly what CUBE builds on.</strong> Standard B-spline volumes store a 3D position (x,y,z) at each control point.
+      When you query the volume at (u,v,w), you get back a 3D position — the reconstructed vertex location. Simple, but limited.
+      A coarse 4×4×4 cage does not have enough degrees of freedom to capture fine wrinkles, pores, or person-specific surface detail.
+      You are asking 64 control points to describe an entire human face. They can get the rough shape right, but the detail is gone.
+CUBE fixes this with one conceptual swap.
+ Instead of storing (x,y,z) at each control point, store a 1024-dimensional feature vector. 
+ The B-spline math is completely unchanged.
+  You still compute the tensor product weights Wu[i]·Wv[j]·Ww[k] exactly as before.
+  The only difference is that instead of interpolating 3 numbers, you are now interpolating 1024 numbers. 
+  The output of querying the volume is no longer a 3D point. 
+  It is a 1024-dimensional feature vector floating in a high-dimensional space that the network has learned to use.
+    </div>
+
+  </section>
+
+  <div style="text-align:center; margin: 48px 0 16px;">
+    <img src="../assets/thats_all.png" alt="That's all folks meme" style="max-width:400px; width:100%; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,0.12);">
+  </div>
+
+</article>
+</div>
+
+<footer>
+  <strong>Geometry Processing</strong> · B-Spline Volumes · From 1D to 3D
+</footer>
+
+<!-- Interactive 1D demo script -->
+<script>
+const canvas = document.getElementById('c1d');
+const ctx = canvas.getContext('2d');
+
+const CPS = [[80,160],[210,60],[340,140]];
+let uVal = 0.5;
+let dragging = null;
+
+function basis(u) {
+  const t = Math.max(0, Math.min(1, u));
+  return [(1-t)*(1-t), 2*t*(1-t), t*t];
+}
+
+function resize1d() {
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.parentElement.getBoundingClientRect().width - 48;
+  const H = 200;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx.scale(dpr, dpr);
+  CPS[0] = [W * 0.18, H * 0.78];
+  CPS[1] = [W * 0.5,  H * 0.25];
+  CPS[2] = [W * 0.82, H * 0.72];
+}
+
+function draw1d() {
+  const W = canvas.width / (window.devicePixelRatio||1);
+  const H = canvas.height / (window.devicePixelRatio||1);
+  ctx.clearRect(0,0,W,H);
+
+  ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();
+  for (let i=0;i<3;i++) { ctx.moveTo(CPS[i][0],0); ctx.lineTo(CPS[i][0],H); }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(CPS[0][0],CPS[0][1]);
+  for (let i=1;i<3;i++) ctx.lineTo(CPS[i][0],CPS[i][1]);
+  ctx.stroke(); ctx.setLineDash([]);
+
+  ctx.strokeStyle = '#d4500a';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  for (let i=0;i<=200;i++) {
+    const u = i/200;
+    const [n1,n2,n3] = basis(u);
+    const x = n1*CPS[0][0]+n2*CPS[1][0]+n3*CPS[2][0];
+    const y = n1*CPS[0][1]+n2*CPS[1][1]+n3*CPS[2][1];
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  const colors = ['#1a5fa8','#d4500a','#1e7c4a'];
+  const labels = ['P₁','P₂','P₃'];
+  for (let i=0;i<3;i++) {
+    ctx.fillStyle = colors[i];
+    ctx.beginPath(); ctx.arc(CPS[i][0],CPS[i][1],8,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#2a2520';
+    ctx.font = 'bold 13px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(labels[i], CPS[i][0], CPS[i][1]-14);
+  }
+
+  const [n1,n2,n3] = basis(uVal);
+  const mx = n1*CPS[0][0]+n2*CPS[1][0]+n3*CPS[2][0];
+  const my = n1*CPS[0][1]+n2*CPS[1][1]+n3*CPS[2][1];
+  ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+  ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(mx,0); ctx.lineTo(mx,H); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#2a2520';
+  ctx.beginPath(); ctx.arc(mx,my,6,0,Math.PI*2); ctx.fill();
+
+  const ws = [n1,n2,n3];
+  for (let i=0;i<3;i++) {
+    const wx = n1*CPS[0][0]+n2*CPS[1][0]+n3*CPS[2][0];
+    ctx.strokeStyle = colors[i];
+    ctx.lineWidth = 1; ctx.setLineDash([2,3]);
+    ctx.beginPath(); ctx.moveTo(CPS[i][0],CPS[i][1]); ctx.lineTo(mx,my); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  document.getElementById('wb1').style.height = (n1*100).toFixed(1)+'%';
+  document.getElementById('wb2').style.height = (n2*100).toFixed(1)+'%';
+  document.getElementById('wb3').style.height = (n3*100).toFixed(1)+'%';
+  document.getElementById('wv1').textContent = n1.toFixed(3);
+  document.getElementById('wv2').textContent = n2.toFixed(3);
+  document.getElementById('wv3').textContent = n3.toFixed(3);
+}
+
+document.getElementById('sl-u').addEventListener('input', e => {
+  uVal = e.target.value / 100;
+  document.getElementById('out-u').textContent = uVal.toFixed(2);
+  draw1d();
+});
+
+canvas.addEventListener('mousedown', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  for (let i=0;i<3;i++) {
+    if (Math.hypot(mx-CPS[i][0],my-CPS[i][1]) < 16) { dragging=i; break; }
+  }
+});
+window.addEventListener('mousemove', e => {
+  if (dragging===null) return;
+  const rect = canvas.getBoundingClientRect();
+  CPS[dragging][0] = e.clientX - rect.left;
+  CPS[dragging][1] = e.clientY - rect.top;
+  draw1d();
+});
+window.addEventListener('mouseup', () => { dragging=null; });
+
+window.addEventListener('resize', () => { resize1d(); draw1d(); });
+setTimeout(() => { resize1d(); draw1d(); }, 80);
+</script>
+
+<script>
+// ── Sphere B-spline demo ──────────────────────────────────────────
+(function() {
+  const N = 16;        // 16x16x16 cage
+  const DEG = 2;
+  const N_LAT = 20, N_LON = 24;
+  const SLICE_K = 7;   // 0-indexed middle slice to show in left panel
+
+  // ── Build sphere vertices + faces ──
+  const sphereVerts = [];
+  const sphereFaces = [];
+  for (let i = 0; i < N_LAT; i++) {
+    for (let j = 0; j < N_LON; j++) {
+      const phi   = (i / (N_LAT - 1)) * Math.PI;
+      const theta = (j / (N_LON - 1)) * 2 * Math.PI;
+      sphereVerts.push([
+        Math.sin(phi) * Math.cos(theta),
+        Math.sin(phi) * Math.sin(theta),
+        Math.cos(phi)
+      ]);
+    }
+  }
+  for (let i = 0; i < N_LAT - 1; i++) {
+    for (let j = 0; j < N_LON - 1; j++) {
+      const a = i * N_LON + j, b = i * N_LON + j + 1;
+      const c = (i+1) * N_LON + j, d = (i+1) * N_LON + j + 1;
+      sphereFaces.push([a,b,c]);
+      sphereFaces.push([b,d,c]);
+    }
+  }
+
+  // ── Build knot vector ──
+  function makeKnots(n, deg) {
+    const nk = n + deg + 1;
+    const k = new Float32Array(nk);
+    const ni = nk - 2*(deg+1);
+    for (let i = 0; i <= deg; i++) k[i] = 0;
+    for (let i = 0; i < ni; i++) k[deg+1+i] = (i+1)/(ni+1);
+    for (let i = 0; i <= deg; i++) k[nk-1-i] = 1;
+    return k;
+  }
+  const KNOTS = makeKnots(N, DEG);
+
+  // ── B-spline basis (Cox-de Boor) ──
+  function basis(t, knots, n, deg) {
+    t = Math.min(t, 1 - 1e-7);
+    const sz = n + deg;
+    const Narr = new Float32Array(sz * (deg+1));
+    const idx = (i,d) => i*(deg+1)+d;
+    for (let i = 0; i < sz-1; i++)
+      Narr[idx(i,0)] = (knots[i] <= t && t < knots[i+1]) ? 1 : 0;
+    for (let d = 1; d <= deg; d++) {
+      for (let i = 0; i < sz-d-1; i++) {
+        let l = 0, r = 0;
+        const d1 = knots[i+d]-knots[i], d2 = knots[i+d+1]-knots[i+1];
+        if (d1 > 1e-10) l = (t-knots[i])/d1 * Narr[idx(i,d-1)];
+        if (d2 > 1e-10) r = (knots[i+d+1]-t)/d2 * Narr[idx(i+1,d-1)];
+        Narr[idx(i,d)] = l + r;
+      }
+    }
+    const w = new Float32Array(n);
+    for (let i = 0; i < n; i++) w[i] = Narr[idx(i,deg)];
+    return w;
+  }
+
+  // ── Control point grid: flat array [i*N*N + j*N + k] -> [x,y,z] ──
+  const PAD = 0.18;
+  const LO = -1 - PAD, HI = 1 + PAD;
+  function makeGrid() {
+    const cp = new Float32Array(N*N*N*3);
+    for (let i = 0; i < N; i++)
+      for (let j = 0; j < N; j++)
+        for (let k = 0; k < N; k++) {
+          const idx = (i*N*N + j*N + k)*3;
+          cp[idx]   = LO + (HI-LO)*i/(N-1);
+          cp[idx+1] = LO + (HI-LO)*j/(N-1);
+          cp[idx+2] = LO + (HI-LO)*k/(N-1);
+        }
+    return cp;
+  }
+  let cpGrid = makeGrid();
+  const cpBase = makeGrid(); // reference copy
+
+  // ── Precompute UVW for sphere vertices ──
+  const uvwArr = new Float32Array(sphereVerts.length * 3);
+  for (let vi = 0; vi < sphereVerts.length; vi++) {
+    const [x,y,z] = sphereVerts[vi];
+    uvwArr[vi*3]   = (x - LO) / (HI - LO);
+    uvwArr[vi*3+1] = (y - LO) / (HI - LO);
+    uvwArr[vi*3+2] = (z - LO) / (HI - LO);
+  }
+
+  // ── Precompute basis weights for all vertices (expensive, done once) ──
+  // Store as sparse: for each vertex, only non-zero (i,j,k) combos
+  // With deg=2, at most 3 active per axis -> at most 27 per vertex
+  console.log('Precomputing basis weights...');
+  const vertBasis = []; // vertBasis[vi] = array of {i,j,k,w}
+  for (let vi = 0; vi < sphereVerts.length; vi++) {
+    const u = uvwArr[vi*3], v = uvwArr[vi*3+1], w = uvwArr[vi*3+2];
+    const Wu = basis(u, KNOTS, N, DEG);
+    const Wv = basis(v, KNOTS, N, DEG);
+    const Ww = basis(w, KNOTS, N, DEG);
+    const entries = [];
+    for (let i = 0; i < N; i++) {
+      if (Wu[i] < 1e-7) continue;
+      for (let j = 0; j < N; j++) {
+        if (Wv[j] < 1e-7) continue;
+        for (let k = 0; k < N; k++) {
+          const wt = Wu[i]*Wv[j]*Ww[k];
+          if (wt > 1e-7) entries.push(i, j, k, wt);
+        }
+      }
+    }
+    vertBasis.push(new Float32Array(entries));
+  }
+  console.log('Done.');
+
+  // ── Query volume ──
+  function queryVolume() {
+    const out = new Float32Array(sphereVerts.length * 3);
+    for (let vi = 0; vi < sphereVerts.length; vi++) {
+      const b = vertBasis[vi];
+      let x=0,y=0,z=0;
+      for (let e = 0; e < b.length; e += 4) {
+        const ci = (b[e]*N*N + b[e+1]*N + b[e+2])*3;
+        const wt = b[e+3];
+        x += wt*cpGrid[ci]; y += wt*cpGrid[ci+1]; z += wt*cpGrid[ci+2];
+      }
+      out[vi*3]=x; out[vi*3+1]=y; out[vi*3+2]=z;
+    }
+    return out;
+  }
+
+  // ── 3D projection ──
+  let rotDeg = 35, tiltDeg = 28;
+  function project(x,y,z,W,H) {
+    const r = rotDeg*Math.PI/180, t = tiltDeg*Math.PI/180;
+    const x1 = x*Math.cos(r) - y*Math.sin(r);
+    const y1 = x*Math.sin(r) + y*Math.cos(r);
+    const y2 = y1*Math.cos(t) - z*Math.sin(t);
+    const z2 = y1*Math.sin(t) + z*Math.cos(t);
+    const sc = W*0.22;
+    return [W/2 + x1*sc, H/2 - y2*sc, z2];
+  }
+
+  function faceNorm(face, verts) {
+    const [a,b,c] = face.map(i=>[verts[i*3],verts[i*3+1],verts[i*3+2]]);
+    const ab=[b[0]-a[0],b[1]-a[1],b[2]-a[2]];
+    const ac=[c[0]-a[0],c[1]-a[1],c[2]-a[2]];
+    return [ab[1]*ac[2]-ab[2]*ac[1], ab[2]*ac[0]-ab[0]*ac[2], ab[0]*ac[1]-ab[1]*ac[0]];
+  }
+
+  // ── Canvas setup ──
+  const cCage   = document.getElementById('cage-canvas');
+  const cSphere = document.getElementById('sphere-canvas');
+  const ctxCage = cCage.getContext('2d');
+  const ctxSph  = cSphere.getContext('2d');
+
+  function setSize(c, w, h) {
+    const dpr = window.devicePixelRatio||1;
+    c.width = w*dpr; c.height = h*dpr;
+    c.style.width = w+'px'; c.style.height = h+'px';
+    c.getContext('2d').scale(dpr, dpr);
+  }
+
+  function resizeCanvases() {
+    const box = document.getElementById('sphere-demo-box');
+    const W = Math.floor((box.getBoundingClientRect().width - 48) / 2);
+    const H = Math.round(W * 0.85);
+    setSize(cCage, W, H);
+    setSize(cSphere, W, H);
+    return {W, H};
+  }
+
+  // ── Draw cage slice (left panel) ──
+  // Shows the SLICE_K layer: i runs left-right, j runs top-bottom
+  function drawCage(W, H) {
+    const ctx = ctxCage;
+    ctx.clearRect(0,0,W,H);
+    const pad = 24;
+    const cellW = (W - 2*pad) / (N-1);
+    const cellH = (H - 2*pad) / (N-1);
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < N; i++) {
+      const x = pad + i*cellW;
+      ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, H-pad); ctx.stroke();
+    }
+    for (let j = 0; j < N; j++) {
+      const y = pad + j*cellH;
+      ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W-pad, y); ctx.stroke();
+    }
+
+    // Control points
+    for (let i = 0; i < N; i++) {
+      for (let j = 0; j < N; j++) {
+        const ci = (i*N*N + j*N + SLICE_K)*3;
+        // base position on screen
+        const bx = pad + i*cellW;
+        const by = pad + j*cellH;
+        // actual displaced position
+        const dx = cpGrid[ci]   - cpBase[ci];
+        const dy = cpGrid[ci+1] - cpBase[ci+1];
+        const screenX = bx + dx * cellW / ((HI-LO)/(N-1));
+        const screenY = by + dy * cellH / ((HI-LO)/(N-1));
+
+        const isDisplaced = Math.abs(dx) > 0.001 || Math.abs(dy) > 0.001;
+        const r = isDisplaced ? 6 : 4;
+
+        if (isDisplaced) {
+          // draw displacement arrow
+          ctx.strokeStyle = 'rgba(212,80,10,0.4)';
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(screenX, screenY); ctx.stroke();
+        }
+
+        ctx.beginPath(); ctx.arc(screenX, screenY, r, 0, Math.PI*2);
+        ctx.fillStyle = isDisplaced ? '#d4500a' : 'rgba(212,80,10,0.55)';
+        ctx.fill();
+        if (!isDisplaced) {
+          ctx.strokeStyle = 'rgba(212,80,10,0.3)';
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Label
+    ctx.fillStyle = 'rgba(122,111,96,0.7)';
+    ctx.font = '11px JetBrains Mono, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('k=8 slice  |  drag any point', pad, H-8);
+  }
+
+  // ── Draw sphere (right panel) ──
+  let cachedVerts = null;
+  function drawSphere(W, H) {
+    const ctx = ctxSph;
+    ctx.clearRect(0,0,W,H);
+
+    if (!cachedVerts) cachedVerts = queryVolume();
+    const verts = cachedVerts;
+
+    const ld = [0.5, 0.3, 0.9];
+    const lLen = Math.sqrt(ld.reduce((s,v)=>s+v*v,0));
+    ld[0]/=lLen; ld[1]/=lLen; ld[2]/=lLen;
+
+    const sorted = [...sphereFaces].sort((a,b) => {
+      const da = a.reduce((s,i)=>s+project(verts[i*3],verts[i*3+1],verts[i*3+2],W,H)[2],0);
+      const db = b.reduce((s,i)=>s+project(verts[i*3],verts[i*3+1],verts[i*3+2],W,H)[2],0);
+      return db - da;
+    });
+
+    const hasDeform = cpGrid.some((v,i) => Math.abs(v - cpBase[i]) > 0.001);
+
+    for (const face of sorted) {
+      const pts = face.map(i => project(verts[i*3],verts[i*3+1],verts[i*3+2],W,H));
+      const n = faceNorm(face, verts);
+      const nl = Math.sqrt(n.reduce((s,v)=>s+v*v,0));
+      const nn = nl > 1e-10 ? n.map(v=>v/nl) : [0,0,1];
+      const diff = Math.max(0, nn[0]*ld[0]+nn[1]*ld[1]+nn[2]*ld[2]);
+      const light = 0.3 + 0.7*diff;
+
+      let r,g,b;
+      if (hasDeform) {
+        r=Math.round(216*light); g=Math.round(90*light); b=Math.round(48*light);
+      } else {
+        r=Math.round(55*light);  g=Math.round(138*light); b=Math.round(221*light);
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(pts[0][0], pts[0][1]);
+      pts.forEach(p => ctx.lineTo(p[0],p[1]));
+      ctx.closePath();
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth = 0.3;
+      ctx.fill(); ctx.stroke();
+    }
+  }
+
+  function redraw() {
+    const {W, H} = resizeCanvases();
+    drawCage(W, H);
+    drawSphere(W, H);
+  }
+
+  // ── Drag logic ──
+  let dragging = null;
+  let dragStartScreen = null;
+  let dragStartCP = null;
+
+  function getCageSize() {
+    const W = cCage.getBoundingClientRect().width;
+    const H = cCage.getBoundingClientRect().height;
+    return {W, H, pad:24, cellW:(W-48)/(N-1), cellH:(H-48)/(N-1)};
+  }
+
+  function getMouseCP(e) {
+    const rect = cCage.getBoundingClientRect();
+    const mx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const my = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+    const {pad, cellW, cellH} = getCageSize();
+    // find nearest control point
+    let best = -1, bestDist = 999;
+    for (let i = 0; i < N; i++) {
+      for (let j = 0; j < N; j++) {
+        const ci = (i*N*N + j*N + SLICE_K)*3;
+        const dx = cpGrid[ci]   - cpBase[ci];
+        const dy = cpGrid[ci+1] - cpBase[ci+1];
+        const sx = pad + i*cellW + dx*cellW/((HI-LO)/(N-1));
+        const sy = pad + j*cellH + dy*cellH/((HI-LO)/(N-1));
+        const dist = Math.hypot(mx-sx, my-sy);
+        if (dist < bestDist) { bestDist = dist; best = i*N+j; }
+      }
+    }
+    return bestDist < 18 ? best : -1;
+  }
+
+  cCage.addEventListener('mousedown', e => {
+    const cp = getMouseCP(e);
+    if (cp < 0) return;
+    dragging = cp;
+    const rect = cCage.getBoundingClientRect();
+    dragStartScreen = [e.clientX - rect.left, e.clientY - rect.top];
+    const i = Math.floor(cp/N), j = cp % N;
+    const ci = (i*N*N + j*N + SLICE_K)*3;
+    dragStartCP = [cpGrid[ci], cpGrid[ci+1]];
+    document.getElementById('sp-info').textContent = `moving P[${i},${j},8]`;
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (dragging === null) return;
+    const rect = cCage.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const {pad, cellW, cellH} = getCageSize();
+    const ddx = mx - dragStartScreen[0];
+    const ddy = my - dragStartScreen[1];
+    const i = Math.floor(dragging/N), j = dragging % N;
+
+    // Convert screen delta to world delta
+    const worldDX = ddx * ((HI-LO)/(N-1)) / cellW;
+    const worldDY = ddy * ((HI-LO)/(N-1)) / cellH;
+
+    // Update this control point
+    const ci = (i*N*N + j*N + SLICE_K)*3;
+    cpGrid[ci]   = dragStartCP[0] + worldDX;
+    cpGrid[ci+1] = dragStartCP[1] + worldDY;
+
+    cachedVerts = null; // invalidate cache
+    const {W, H} = resizeCanvases();
+    drawCage(W, H);
+    drawSphere(W, H);
+  });
+
+  window.addEventListener('mouseup', () => {
+    dragging = null;
+  });
+
+  // ── Controls ──
+  document.getElementById('sp-rot').addEventListener('input', e => {
+    rotDeg = parseInt(e.target.value);
+    document.getElementById('sp-rot-out').textContent = rotDeg + '\u00b0';
+    const {W,H} = resizeCanvases();
+    drawSphere(W,H);
+  });
+  document.getElementById('sp-tilt').addEventListener('input', e => {
+    tiltDeg = parseInt(e.target.value);
+    document.getElementById('sp-tilt-out').textContent = tiltDeg + '\u00b0';
+    const {W,H} = resizeCanvases();
+    drawSphere(W,H);
+  });
+  document.getElementById('sp-reset').addEventListener('click', () => {
+    cpGrid = makeGrid();
+    cachedVerts = null;
+    document.getElementById('sp-info').textContent = '';
+    redraw();
+  });
+
+  window.addEventListener('resize', () => { cachedVerts=null; redraw(); });
+  setTimeout(redraw, 120);
+})();
+</script>
+
+</body>
+</html>
