@@ -11621,8 +11621,8 @@ html {
   -webkit-text-fill-color: transparent;
 }
 
-.bg-white { background-color: #faf8f3 !important; }
-.bg-light { background-color: #f3f0e8 !important; }
+.bg-white { background-color: #fdfcfb !important; }
+.bg-light { background-color: #f9f8f6 !important; }
 
 .btn-primary {
   --bs-btn-bg: #d4500a;
@@ -11647,9 +11647,8 @@ html {
 .navbar .nav-link {
   font-weight: 600;
   font-size: 15px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #7a6f60;
+  letter-spacing: 0.01em;
+  color: #2a2520;
   padding: 6px 14px !important;
   border-radius: 100px;
   transition: color 0.18s, background 0.18s;
@@ -11842,3 +11841,4 @@ html {
     left: -2vw;
   }
 }
+
